@@ -4,7 +4,7 @@
  * Purpose: The Service Worker for the Trellis PWA.
  */
 
-const CACHE_NAME = 'trellis-v2';
+const CACHE_NAME = 'trellis-v3'; // Bumped version to force caching of new files
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -14,6 +14,7 @@ const ASSETS_TO_CACHE = [
     './nudge.js',
     './session-generator.js',
     './poses.json',
+    './locales.js', // <--- Added this
     './icon-192.png',
     './icon-512.png',
     './manifest.json'
@@ -21,7 +22,7 @@ const ASSETS_TO_CACHE = [
 
 // Install event - cache all necessary files
 self.addEventListener('install', event => {
-    self.skipWaiting(); // 1.11: Force new SW to take over immediately
+    self.skipWaiting(); // Force new SW to take over immediately
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
             console.log('✅ Service Worker: Caching assets');
@@ -42,7 +43,7 @@ self.addEventListener('activate', event => {
                     }
                 })
             );
-        }).then(() => clients.claim()) // 1.11: Activate immediately for all pages
+        }).then(() => clients.claim()) // Activate immediately for all pages
     );
 });
 

@@ -4,10 +4,8 @@
  * Purpose: The main controller for the Trellis app.
  * 
  * Updates in this version:
- * - Added event delegation for session buttons (ensures Skip/Pause always work).
- * - Fixed plateau nudge error causing JavaScript freeze.
- * - Language toggle now hides the active language button (shows only the inactive one).
- * - Nudge keys added to locales.js.
+ * - Stores the completed level in a local variable before passing to completion screen.
+ * - This ensures replays show the correct level.
  */
 
 import { loadState, saveState } from './storage.js';
@@ -170,9 +168,8 @@ class TrellisApp {
             this.lastSuggestedLevel = plateauNudge.suggested;
             this.lastSuggestedFocus = null;
             const t = this.t;
-            const plateauLevel = plateauNudge.suggested - 1; // The level they repeated
             msgBox.textContent = t('nudgePlateauMessage', { 
-                level: plateauLevel, 
+                level: plateauNudge.repeatedLevel, 
                 suggested: plateauNudge.suggested 
             });
             document.querySelectorAll('.focus-btn').forEach(btn => btn.style.border = '1px solid #ccc');
@@ -277,15 +274,26 @@ class TrellisApp {
     displayPose(index) {
         const sessionItem = this.currentSession[index];
         if (!sessionItem) {
-            this.displayCompletionScreen();
+            // Store the completed level locally to avoid any state mutation issues
+            const completedLevel = this.state.currentLevel;
+            this.displayCompletionScreen(completedLevel);
             return;
         }
         document.getElementById('pose-progress').textContent = `${index + 1} / ${this.currentSession.length}`;
+        
         const pose = sessionItem.pose;
-        document.getElementById('pose-name').textContent = pose.english_name;
+        const side = sessionItem.side; // 'left', 'right', or undefined
+
+        let poseName = pose.translations[this.state.lang] || pose.english_name;
+        if (side === 'left') {
+            poseName += this.t('sideLeft');
+        } else if (side === 'right') {
+            poseName += this.t('sideRight');
+        }
+        
+        document.getElementById('pose-name').textContent = poseName;
         document.getElementById('pose-image').src = pose.image_url;
         
-        // Translated pose description
         const desc = this.state.lang === 'en' ? pose.description_en : pose.description_fr;
         document.getElementById('pose-description').textContent = desc || '';
 
@@ -298,7 +306,7 @@ class TrellisApp {
         this.requestWakeLock();
     }
 
-    displayCompletionScreen() {
+    displayCompletionScreen(level) {
         this.releaseWakeLock();
         if (this.timerInterval) {
             clearInterval(this.timerInterval);
@@ -306,8 +314,8 @@ class TrellisApp {
         }
         document.getElementById('session-screen').style.display = 'none';
         document.getElementById('completion-screen').style.display = 'block';
-        document.getElementById('completed-level').textContent = this.state.currentLevel;
-        document.querySelector('#completion-screen p').textContent = this.t('completeMsg', { level: this.state.currentLevel });
+        document.getElementById('completed-level').textContent = level;
+        document.querySelector('#completion-screen p').textContent = this.t('completeMsg', { level: level });
     }
 
     endSession(completed) {
@@ -326,7 +334,7 @@ class TrellisApp {
             focus: this.state.focus,
             duration: this.state.duration,
             posesUsed: this.currentSession.map(item => item.pose.id),
-            completed: true,
+            completed: completed,
             timestamp: new Date().toISOString()
         };
         this.state.recentSessions.push(sessionRecord);
@@ -351,11 +359,6 @@ class TrellisApp {
             this.state.frontierLevel++;
             this.state.lastPlayedLevel = this.state.frontierLevel;
 
-            if (this.state.focusHistory[this.state.focus] !== undefined) {
-                this.state.focusHistory[this.state.focus]++;
-            } else {
-                this.state.focusHistory[this.state.focus] = 1;
-            }
 
             saveState(this.state);
             this.renderTrellis();
@@ -368,7 +371,7 @@ class TrellisApp {
         }
     }
 
-    // --- UI SETUP (Using Event Delegation for Controls) ---
+    // --- UI SETUP ---
     setupUI() {
         const app = this;
 
@@ -377,20 +380,18 @@ class TrellisApp {
             document.getElementById('safety-disclaimer').style.display = 'none';
         });
 
-        // Language Buttons (Toggle visibility & Active class)
+        // Language Buttons
         const toggleLang = (lang) => {
             if (app.state.lang === lang) return;
             app.state.lang = lang;
             saveState(app.state);
             
-            // Hide the active button, show the inactive one
             document.getElementById('lang-en').style.display = lang === 'en' ? 'none' : 'inline-block';
             document.getElementById('lang-fr').style.display = lang === 'fr' ? 'none' : 'inline-block';
             
             app.renderStaticLabels();
             app.renderNudge();
             
-            // If a session is currently displayed, re-render the pose description
             if (document.getElementById('session-screen').style.display !== 'none') {
                 app.displayPose(app.sessionIndex);
             }
@@ -457,8 +458,7 @@ class TrellisApp {
             });
         });
 
-        // --- EVENT DELEGATION FOR SESSION CONTROLS ---
-        // Attaches a single listener to the container, guaranteeing the buttons remain clickable
+        // Session Controls via Event Delegation
         document.getElementById('session-screen').addEventListener('click', (e) => {
             const target = e.target;
             

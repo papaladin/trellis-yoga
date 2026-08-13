@@ -26,6 +26,8 @@ export const LOCALES = {
     skipBtn: 'Skip',
     pauseBtn: 'Pause',
     resumeBtn: 'Resume',
+    sideLeft: ' (Left)',
+    sideRight: ' (Right)',
 
     // Completion Screen
     completeTitle: '🎉 Session Complete!',
@@ -66,6 +68,8 @@ export const LOCALES = {
     skipBtn: 'Passer',
     pauseBtn: 'Pause',
     resumeBtn: 'Reprendre',
+    sideLeft: ' (Gauche)',
+    sideRight: ' (Droite)',
 
     // Completion Screen
     completeTitle: '🎉 Séance terminée !',
