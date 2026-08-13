@@ -1,0 +1,90 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #FDFBF7; color: #2B2B2B; padding-bottom: 165px; }
+
+/* Home Screen */
+header { text-align: center; padding: 20px 0; font-family: "Georgia", serif; font-size: 1.5rem; color: #2B2B2B; }
+#vine-container { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px; }
+
+/* The Node */
+.node { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+.node.locked { background: #e0e0e0; color: #aaa; cursor: not-allowed; }
+.node.available { background: #8DB580; color: white; }
+.node.completed { background: #D98866; color: white; }
+.node.suggested {
+    border: 3px solid #D98866;
+    box-shadow: 0 0 12px rgba(217, 136, 102, 0.5);
+    transform: scale(1.1);
+}
+
+/* Bottom HUD */
+#bottom-hud { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid #e0e0e0; padding: 5px 15px 15px; display: flex; flex-direction: column; gap: 4px; z-index: 100; }
+.hud-row { display: flex; justify-content: space-between; align-items: center; }
+.hud-label { font-size: 0.8rem; color: #666; width: 60px; }
+.button-group { display: flex; gap: 8px; }
+.button-group button { padding: 5px 12px; border: 1px solid #ccc; background: white; border-radius: 20px; font-size: 0.9rem; cursor: pointer; }
+.button-group button.active { background: #8DB580; color: white; border-color: #8DB580; }
+
+/* Attribution Row & Footer Buttons */
+.attribution-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding-top: 6px;
+    margin-top: 4px;
+    border-top: 1px solid #eee;
+    min-height: 24px;
+}
+
+.attribution-left-spacer {
+    width: 40px; /* Balances the width of the footer-button-group */
+}
+
+#attribution-text {
+    font-size: 0.6rem;
+    color: #999;
+    text-align: center;
+}
+#attribution-text a { color: #8DB580; text-decoration: none; }
+
+.footer-button-group {
+    display: flex;
+    gap: 4px;
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Language Buttons */
+.lang-btn {
+    background: transparent;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 0 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    line-height: 1.4;
+}
+.lang-btn:hover {
+    border-color: #8DB580;
+}
+.lang-btn.active {
+    border-color: #8DB580;
+    background: #f0f8ee;
+}
+
+/* Quick Unlock Button */
+#unlock-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    line-height: 1.4;
+}
+
+/* Session Screen */
+#session-screen { text-align: center; padding: 40px 20px; }
+#pose-image { max-width: 80%; margin: 20px 0; border-radius: 8px; }
+#timer { font-size: 4rem; font-family: monospace; letter-spacing: 2px; margin: 20px 0; }
+#exit-session { position: absolute; top: 20px; left: 20px; background: none; border: none; font-size: 1rem; cursor: pointer; }

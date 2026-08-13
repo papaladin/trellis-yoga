@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trellis - Generator Tests</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #FDFBF7; }
+        h1 { font-family: "Georgia", serif; color: #2B2B2B; }
+        #test-output { margin-top: 20px; line-height: 1.6; }
+        .button-group {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: monospace;
+        }
+        #rerun-btn { background: #8DB580; color: white; }
+        #copy-fail-btn { background: #e0e0e0; color: #333; }
+        #copy-fail-btn:hover { background: #d0d0d0; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Trellis Automated Tests</h1>
+    <p>Running assertions against <code>session-generator.js</code> and <code>nudge.js</code>...</p>
+    
+    <div class="button-group">
+        <button id="rerun-btn">Re-run Tests</button>
+        <button id="copy-fail-btn">Copy Failed Tests</button>
+    </div>
+
+    <div id="test-output"></div>
+
+    <script type="module">
+        import { runGeneratorTests } from './session-generator.test.js';
+        import { runNudgeTests } from './nudge.test.js';
+
+        async function runAllTests() {
+            const output = document.getElementById('test-output');
+            output.innerHTML = ''; // Clear previous results
+
+            // Run Generator Suite
+            const genResult = await runGeneratorTests();
+
+            // Add Visual Separator
+            const sep = document.createElement('div');
+            sep.textContent = '═══════════════════════════════════════════════';
+            sep.style.fontWeight = 'bold';
+            sep.style.marginTop = '20px';
+            sep.style.color = '#555';
+            output.appendChild(sep);
+
+            // Run Nudge Suite
+            const nudgeResult = await runNudgeTests();
+
+            // Calculate Grand Total
+            const totalPassed = genResult.passed + nudgeResult.passed;
+            const totalFailed = genResult.failed + nudgeResult.failed;
+            const totalTests = totalPassed + totalFailed;
+
+            // Render Grand Total Box
+            const grandTotal = document.createElement('div');
+            grandTotal.textContent = `🏁 GRAND TOTAL: ${totalPassed} / ${totalTests} passed`;
+            grandTotal.style.fontWeight = 'bold';
+            grandTotal.style.fontSize = '1.2rem';
+            grandTotal.style.marginTop = '20px';
+            grandTotal.style.padding = '12px';
+            grandTotal.style.borderRadius = '6px';
+            grandTotal.style.textAlign = 'center';
+            grandTotal.style.border = '2px solid #2B2B2B';
+            grandTotal.style.backgroundColor = totalFailed === 0 ? '#e6ffea' : '#ffe6e6';
+            grandTotal.style.color = totalFailed === 0 ? '#2B2B2B' : '#a00';
+            output.appendChild(grandTotal);
+        }
+
+        // Bind the Re-run button
+        document.getElementById('rerun-btn').addEventListener('click', runAllTests);
+
+        // Bind the Copy Failed Tests button
+        document.getElementById('copy-fail-btn').addEventListener('click', () => {
+            const lines = document.querySelectorAll('#test-output > div');
+            const failedLines = Array.from(lines)
+                .filter(div => div.textContent.trim().startsWith('❌'))
+                .map(div => div.textContent.trim());
+
+            if (failedLines.length === 0) {
+                alert('No failed tests to copy!');
+                return;
+            }
+
+            const textToCopy = failedLines.join('\n');
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const btn = document.getElementById('copy-fail-btn');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => { btn.textContent = originalText; }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                alert('Could not copy to clipboard. Please copy manually.');
+            });
+        });
+
+        // Run on load
+        await runAllTests();
+    </script>
+</body>
+</html>

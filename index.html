@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    
+    <!-- iOS PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    <link rel="manifest" href="./manifest.json">
+    
+    <title>Trellis</title>
+    <link rel="stylesheet" href="main.css">
+
+    <!-- Inline styles for spinner, disclaimer -->
+    <style>
+        /* Loading Spinner */
+        #loading-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 80vh; font-family: "Georgia", serif; color: #2B2B2B;
+        }
+        .spinner {
+            width: 40px; height: 40px; margin: 20px auto;
+            border: 4px solid #e0e0e0; border-top: 4px solid #8DB580;
+            border-radius: 50%; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Safety Disclaimer Modal */
+        #safety-disclaimer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+        .disclaimer-box {
+            background: white; padding: 30px; max-width: 340px; border-radius: 12px;
+            text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .disclaimer-box h2 { margin-bottom: 15px; font-family: "Georgia", serif; }
+        .disclaimer-box p { font-size: 0.9rem; line-height: 1.5; color: #555; margin-bottom: 20px; }
+        .disclaimer-btn {
+            background: #8DB580; color: white; border: none; padding: 10px 20px;
+            border-radius: 20px; font-size: 1rem; cursor: pointer; width: 100%;
+        }
+
+        /* Session Progress & Description */
+        #pose-progress {
+            position: absolute; top: 20px; right: 20px;
+            font-size: 1rem; color: #666; font-family: monospace;
+        }
+        #pose-description {
+            margin-top: 10px; font-size: 0.9rem; color: #555; max-width: 80%; margin-left: auto; margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>Loading your practice...</p>
+    </div>
+
+    <!-- Home Screen -->
+    <div id="home-screen" style="display:none;">
+        <header>
+            <h1>Trellis</h1>
+        </header>
+        
+        <!-- The Vine -->
+        <div id="vine-container"></div>
+
+        <!-- Bottom HUD -->
+        <footer id="bottom-hud">
+            <!-- Nudge Message -->
+            <div id="nudge-message" style="text-align: center; font-size: 0.85rem; color: #666; font-style: italic; min-height: 25px; padding-bottom: 5px; border-bottom: 1px solid #eee; width: 100%;"></div>
+            
+            <div class="hud-row">
+                <span id="focus-label" class="hud-label">Focus</span>
+                <div class="button-group">
+                    <button class="focus-btn" data-focus="relax">Relax</button>
+                    <button class="focus-btn active" data-focus="strengthen">Strengthen</button>
+                    <button class="focus-btn" data-focus="mobility">Mobility</button>
+                </div>
+            </div>
+            <div class="hud-row">
+                <span id="duration-label" class="hud-label">Duration</span>
+                <div class="button-group">
+                    <button class="duration-btn" data-duration="short">Short</button>
+                    <button class="duration-btn active" data-duration="medium">Medium</button>
+                    <button class="duration-btn" data-duration="long">Long</button>
+                </div>
+            </div>
+
+            <!-- Attribution Row with Quick Unlock & Language Toggle -->
+            <div class="hud-row attribution-row">
+                <div class="attribution-left-spacer"></div> <!-- Symmetry spacer -->
+                <span id="attribution-text">
+                    Yoga illustrations sourced from <a href="https://www.flaticon.com/" target="_blank" rel="noopener noreferrer">Flaticon</a>.
+                </span>
+                <div class="footer-button-group">
+                    <button id="lang-en" class="lang-btn" title="English">🇬🇧</button>
+                    <button id="lang-fr" class="lang-btn" title="Français">🇫🇷</button>
+                    <button id="unlock-btn" title="Quick Unlock">🔓</button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Session Screen -->
+    <div id="session-screen" style="display:none;">
+        <button id="exit-session">← Exit</button>
+        <div id="pose-display">
+            <span id="pose-progress">0 / 0</span>
+            <h2 id="pose-name">Pose Name</h2>
+            <img id="pose-image" src="" alt="Pose Illustration">
+            <div id="timer">00:00</div>
+            <!-- NEW: Pose Description -->
+            <p id="pose-description"></p>
+        </div>
+        <div id="session-controls">
+            <button id="skip-pose">Skip</button>
+            <button id="pause-timer">Pause</button>
+        </div>
+    </div>
+
+    <!-- Completion Screen -->
+    <div id="completion-screen" style="display:none; text-align: center; padding: 40px 20px;">
+        <h2>🎉 Session Complete!</h2>
+        <p>Great job finishing Level <span id="completed-level">1</span>.</p>
+        <button id="continue-home" style="margin-top: 30px; padding: 12px 24px; background: #8DB580; color: white; border: none; border-radius: 8px; font-size: 1.2rem;">Return to Trellis</button>
+    </div>
+
+    <!-- Safety Disclaimer Modal -->
+    <div id="safety-disclaimer">
+        <div class="disclaimer-box">
+            <h2>⚠️ Safety First</h2>
+            <p>
+                Some poses, like Shoulder Stand and Plow, place significant weight on the neck. 
+                Please consult a qualified professional before attempting them if you have neck, 
+                back, or spinal conditions. If anything hurts, stop immediately.
+            </p>
+            <button class="disclaimer-btn" id="disclaimer-acknowledge">I Understand</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="app.js"></script>
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('✅ Service Worker registered:', reg.scope))
+                .catch(err => console.warn('⚠️ Service Worker registration failed:', err));
+        }
+    </script>
+</body>
+</html>

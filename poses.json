@@ -5,10 +5,29 @@
     "sanskrit_name": "Navasana",
     "difficulty": "Intermediate",
     "source_categories": ["Core", "Seated", "Strengthening"],
-    "sequence_role": "Pathway / Peak",
+    "sequence_role": ["Pathway", "Peak"],
     "body_focus": ["Core", "Balance"],
-    "image_url": "PLACEHOLDER_FOR_ID_1",
-    "translations": { "fr": "", "en": "Boat" }
+    "intensity": "moderate",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Barque", "en": "Boat" },
+    "description_en": "Sit on the floor, lean back slightly, and lift your legs so your shins are parallel to the ground.",
+    "description_fr": "Asseyez-vous sur le sol, penchez-vous légèrement en arrière et levez les jambes pour que vos tibias soient parallèles au sol."
+  },
+  {
+    "id": 2,
+    "english_name": "Cobra",
+    "sanskrit_name": "Bhujangasana",
+    "difficulty": "Beginner",
+    "source_categories": ["Chest Opening", "Backbend"],
+    "sequence_role": ["Peak"],
+    "body_focus": ["Backbend", "Core"],
+    "intensity": "moderate",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Cobra", "en": "Cobra" },
+    "description_en": "Lie on your belly, place your palms under your shoulders, and gently press up to lift your chest off the floor.",
+    "description_fr": "Allongez-vous sur le ventre, placez vos paumes sous vos épaules et poussez doucement pour soulever votre poitrine du sol."
   },
   {
     "id": 3,
@@ -16,10 +35,14 @@
     "sanskrit_name": "Dhanurasana",
     "difficulty": "Intermediate",
     "source_categories": ["Chest Opening", "Backbend"],
-    "sequence_role": "Peak",
+    "sequence_role": ["Peak"],
     "body_focus": ["Backbend"],
-    "image_url": "PLACEHOLDER_FOR_ID_3",
-    "translations": { "fr": "", "en": "Bow" }
+    "intensity": "intense",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Arc", "en": "Bow" },
+    "description_en": "Lie on your belly, reach back to grab your ankles, and lift your chest and thighs upwards.",
+    "description_fr": "Allongez-vous sur le ventre, attrapez vos chevilles en arrière et soulevez votre poitrine et vos cuisses vers le haut."
   },
   {
     "id": 4,
@@ -27,10 +50,14 @@
     "sanskrit_name": "Setu Bandha Sarvangasana",
     "difficulty": "Beginner",
     "source_categories": [],
-    "sequence_role": "Cooldown / Counter",
+    "sequence_role": ["Cooldown", "Counter"],
     "body_focus": ["Backbend", "Hip-Opener"],
-    "image_url": "PLACEHOLDER_FOR_ID_4",
-    "translations": { "fr": "", "en": "Bridge" }
+    "intensity": "moderate",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Pont", "en": "Bridge" },
+    "description_en": "Lie on your back, bend your knees, press your feet into the ground, and lift your hips up towards the ceiling.",
+    "description_fr": "Allongez-vous sur le dos, pliez les genoux, poussez vos pieds dans le sol et soulevez vos hanches vers le plafond."
   },
   {
     "id": 5,
@@ -38,10 +65,14 @@
     "sanskrit_name": "Baddha Konasana",
     "difficulty": "Beginner",
     "source_categories": ["Seated", "Forward Bend", "Hip Opening"],
-    "sequence_role": "Centering / Cooldown",
+    "sequence_role": ["Centering", "Cooldown"],
     "body_focus": ["Hip-Opener", "Forward-Bend"],
-    "image_url": "PLACEHOLDER_FOR_ID_5",
-    "translations": { "fr": "", "en": "Butterfly" }
+    "intensity": "mild",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Papillon", "en": "Butterfly" },
+    "description_en": "Sit with your feet together, knees out to the sides, and gently press your knees towards the floor.",
+    "description_fr": "Asseyez-vous avec les pieds joints, les genoux écartés sur les côtés, et poussez doucement vos genoux vers le sol."
   },
   {
     "id": 6,
@@ -49,10 +80,14 @@
     "sanskrit_name": "Ustrasana",
     "difficulty": "Intermediate",
     "source_categories": ["Chest Opening", "Backbend"],
-    "sequence_role": "Peak",
+    "sequence_role": ["Peak"],
     "body_focus": ["Backbend"],
-    "image_url": "PLACEHOLDER_FOR_ID_6",
-    "translations": { "fr": "", "en": "Camel" }
+    "intensity": "intense",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Chameau", "en": "Camel" },
+    "description_en": "Kneel on the floor, lean back, and reach your hands to your heels to arch your spine deeply.",
+    "description_fr": "Mettez-vous à genoux sur le sol, penchez-vous en arrière et tendez les mains vers vos talons pour arquer profondément la colonne."
   },
   {
     "id": 7,
@@ -60,10 +95,14 @@
     "sanskrit_name": "Marjaryasana",
     "difficulty": "Beginner",
     "source_categories": ["Core"],
-    "sequence_role": "Warming",
+    "sequence_role": ["Warming"],
     "body_focus": ["Core"],
-    "image_url": "PLACEHOLDER_FOR_ID_7",
-    "translations": { "fr": "", "en": "Cat" }
+    "intensity": "mild",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Chat", "en": "Cat" },
+    "description_en": "Starting on all fours, arch your back up towards the ceiling and tuck your chin to your chest.",
+    "description_fr": "En partant à quatre pattes, arquez votre dos vers le plafond et rentrez le menton vers la poitrine."
   },
   {
     "id": 8,
@@ -71,10 +110,14 @@
     "sanskrit_name": "Bitilasana",
     "difficulty": "Beginner",
     "source_categories": ["Chest Opening", "Backbend"],
-    "sequence_role": "Warming",
+    "sequence_role": ["Warming"],
     "body_focus": ["Backbend"],
-    "image_url": "PLACEHOLDER_FOR_ID_8",
-    "translations": { "fr": "", "en": "Cow" }
+    "intensity": "mild",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Vache", "en": "Cow" },
+    "description_en": "Starting on all fours, drop your belly towards the floor and lift your head and sitting bones up.",
+    "description_fr": "En partant à quatre pattes, abaissez votre ventre vers le sol et levez la tête et les fesses vers le haut."
   },
   {
     "id": 9,
@@ -82,10 +125,14 @@
     "sanskrit_name": "Utkatasana",
     "difficulty": "Beginner",
     "source_categories": ["Core", "Strengthening", "Standing"],
-    "sequence_role": "Pathway",
+    "sequence_role": ["Pathway"],
     "body_focus": ["Standing-Strength", "Core"],
-    "image_url": "PLACEHOLDER_FOR_ID_9",
-    "translations": { "fr": "", "en": "Chair" }
+    "intensity": "moderate",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Chaise", "en": "Chair" },
+    "description_en": "Stand straight, bend your knees deeply, and shift your weight back into your heels as if sitting on a chair.",
+    "description_fr": "Tenez-vous droit, pliez les genoux profondément et déplacez votre poids vers vos talons comme si vous étiez assis sur une chaise."
   },
   {
     "id": 10,
@@ -93,10 +140,14 @@
     "sanskrit_name": "Balasana",
     "difficulty": "Beginner",
     "source_categories": ["Forward Bend", "Hip Opening", "Restorative"],
-    "sequence_role": "Centering / Counter / Cooldown",
+    "sequence_role": ["Centering", "Counter", "Cooldown"],
     "body_focus": ["Forward-Bend", "Restorative"],
-    "image_url": "PLACEHOLDER_FOR_ID_10",
-    "translations": { "fr": "", "en": "Child's Pose" }
+    "intensity": "mild",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Posture de l'Enfant", "en": "Child's Pose" },
+    "description_en": "Kneel on the floor, sit back on your heels, and stretch your arms forward with your forehead resting on the ground.",
+    "description_fr": "Mettez-vous à genoux, asseyez-vous sur vos talons et étirez vos bras vers l'avant avec le front reposant sur le sol."
   },
   {
     "id": 11,
@@ -104,10 +155,14 @@
     "sanskrit_name": "Savasana",
     "difficulty": "Beginner",
     "source_categories": ["Restorative"],
-    "sequence_role": "Integration",
+    "sequence_role": ["Integration"],
     "body_focus": ["Restorative"],
-    "image_url": "PLACEHOLDER_FOR_ID_11",
-    "translations": { "fr": "", "en": "Corpse" }
+    "intensity": "mild",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Cadavre", "en": "Corpse" },
+    "description_en": "Lie flat on your back, let your legs relax apart, and rest your arms at your sides, palms facing up.",
+    "description_fr": "Allongez-vous à plat sur le dos, laissez vos jambes se relâcher écartées et posez vos bras le long du corps, paumes vers le haut."
   },
   {
     "id": 12,
@@ -115,10 +170,14 @@
     "sanskrit_name": "Alanasana",
     "difficulty": "Intermediate",
     "source_categories": ["Standing"],
-    "sequence_role": "Pathway",
+    "sequence_role": ["Pathway"],
     "body_focus": ["Standing-Strength", "Hip-Opener"],
-    "image_url": "PLACEHOLDER_FOR_ID_12",
-    "translations": { "fr": "", "en": "Crescent Lunge" }
+    "intensity": "moderate",
+    "hip_rotation": "internal",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Fente de la Lune", "en": "Crescent Lunge" },
+    "description_en": "Step one foot forward into a deep lunge, lift your back heel, and raise your arms overhead.",
+    "description_fr": "Avancez un pied dans une fente profonde, soulevez le talon arrière et levez les bras au-dessus de la tête."
   },
   {
     "id": 13,
@@ -126,10 +185,14 @@
     "sanskrit_name": "Bakasana",
     "difficulty": "Intermediate",
     "source_categories": ["Core", "Arm Balance"],
-    "sequence_role": "Peak",
+    "sequence_role": ["Peak"],
     "body_focus": ["Arm-Balance", "Core"],
-    "image_url": "PLACEHOLDER_FOR_ID_13",
-    "translations": { "fr": "", "en": "Crow" }
+    "intensity": "intense",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Corbeau", "en": "Crow" },
+    "description_en": "Squat down, place your hands on the ground, rest your knees on your triceps, and lean forward to lift your feet off the ground.",
+    "description_fr": "Accroupissez-vous, posez vos mains au sol, posez vos genoux sur vos triceps et penchez-vous en avant pour décoller vos pieds du sol."
   },
   {
     "id": 14,
@@ -137,10 +200,14 @@
     "sanskrit_name": "Ardha Pincha Mayurasana",
     "difficulty": "Expert",
     "source_categories": ["Core", "Strengthening", "Standing"],
-    "sequence_role": "Pathway / Peak",
+    "sequence_role": ["Pathway", "Peak"],
     "body_focus": ["Arm-Balance", "Core", "Inversion"],
-    "image_url": "PLACEHOLDER_FOR_ID_14",
-    "translations": { "fr": "", "en": "Dolphin" }
+    "intensity": "intense",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Dauphin", "en": "Dolphin" },
+    "description_en": "Start on your forearms, lift your hips upwards, and walk your feet closer to your elbows to form an inverted V-shape.",
+    "description_fr": "Commencez sur vos avant-bras, soulevez vos hanches vers le haut et rapprochez vos pieds de vos coudes pour former un V inversé."
   },
   {
     "id": 15,
@@ -148,10 +215,14 @@
     "sanskrit_name": "Adho Mukha Svanasana",
     "difficulty": "Intermediate",
     "source_categories": ["Strengthening", "Forward Bend", "Standing"],
-    "sequence_role": "Warming / Pathway",
-    "body_focus": ["Arm-Balance", "Forward-Bend"],
-    "image_url": "PLACEHOLDER_FOR_ID_15",
-    "translations": { "fr": "", "en": "Downward-Facing Dog" }
+    "sequence_role": ["Warming", "Pathway"],
+    "body_focus": ["Forward-Bend", "Standing-Strength"],
+    "intensity": "moderate",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Chien Tête en Bas", "en": "Downward-Facing Dog" },
+    "description_en": "From all fours, lift your hips up and back, press your heels toward the ground, and straighten your arms.",
+    "description_fr": "À partir des quatre pattes, levez vos hanches en arrière, poussez vos talons vers le sol et tendez vos bras."
   },
   {
     "id": 16,
@@ -159,10 +230,14 @@
     "sanskrit_name": "Garudasana",
     "difficulty": "Intermediate",
     "source_categories": ["Standing", "Hip Opening", "Balancing"],
-    "sequence_role": "Pathway",
+    "sequence_role": ["Pathway"],
     "body_focus": ["Balance", "Hip-Opener"],
-    "image_url": "PLACEHOLDER_FOR_ID_16",
-    "translations": { "fr": "", "en": "Eagle" }
+    "intensity": "moderate",
+    "hip_rotation": "external",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Aigle", "en": "Eagle" },
+    "description_en": "Stand on one leg, wrap the other leg around it, and hook your arms together in front of your face.",
+    "description_fr": "Tenez-vous sur une jambe, enroulez l'autre jambe autour de celle-ci et accrochez vos bras ensemble devant votre visage."
   },
   {
     "id": 17,
@@ -170,10 +245,14 @@
     "sanskrit_name": "Utthita Hasta Padangusthasana",
     "difficulty": "Expert",
     "source_categories": ["Standing", "Hip Opening", "Balancing"],
-    "sequence_role": "Pathway",
+    "sequence_role": ["Pathway"],
     "body_focus": ["Balance", "Hip-Opener", "Standing-Strength"],
-    "image_url": "PLACEHOLDER_FOR_ID_17",
-    "translations": { "fr": "", "en": "Extended Hand to Toe" }
+    "intensity": "moderate",
+    "hip_rotation": "external",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Main au Pied", "en": "Extended Hand to Toe" },
+    "description_en": "Stand on one leg, reach down to grip the big toe of the lifted leg, and extend the leg straight out to the side.",
+    "description_fr": "Tenez-vous sur une jambe, attrapez le gros orteil de la jambe levée et tendez-la sur le côté."
   },
   {
     "id": 18,
@@ -181,10 +260,14 @@
     "sanskrit_name": "Utthita Parsvakonasana",
     "difficulty": "Intermediate",
     "source_categories": ["Strengthening", "Standing"],
-    "sequence_role": "Pathway",
+    "sequence_role": ["Pathway"],
     "body_focus": ["Standing-Strength", "Hip-Opener"],
-    "image_url": "PLACEHOLDER_FOR_ID_18",
-    "translations": { "fr": "", "en": "Extended Side Angle" }
+    "intensity": "moderate",
+    "hip_rotation": "external",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Angle Latéral", "en": "Extended Side Angle" },
+    "description_en": "Step into a wide stance, bend your front knee into a lunge, and reach your front hand down while extending your other arm overhead.",
+    "description_fr": "Écartez les pieds, pliez votre genou avant en fente et descendez une main tout en tendant l'autre bras au-dessus de la tête."
   },
   {
     "id": 19,
@@ -192,10 +275,14 @@
     "sanskrit_name": "Pincha Mayurasana",
     "difficulty": "Expert",
     "source_categories": ["Strengthening", "Inversion"],
-    "sequence_role": "Peak",
+    "sequence_role": ["Peak"],
     "body_focus": ["Arm-Balance", "Inversion", "Core"],
-    "image_url": "PLACEHOLDER_FOR_ID_19",
-    "translations": { "fr": "", "en": "Forearm Stand" }
+    "intensity": "intense",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Équilibre sur les Avant-bras", "en": "Forearm Stand" },
+    "description_en": "Place your forearms on the floor shoulder-width apart, kick up one leg at a time to bring your body into a vertical inversion.",
+    "description_fr": "Placez vos avant-bras au sol, écartés de la largeur des épaules, et levez les jambes l'une après l'autre pour inverser le corps."
   },
   {
     "id": 20,
@@ -203,10 +290,14 @@
     "sanskrit_name": "Ardha Uttanasana",
     "difficulty": "Intermediate",
     "source_categories": ["Forward Bend"],
-    "sequence_role": "Pathway / Cooldown",
+    "sequence_role": ["Pathway", "Cooldown"],
     "body_focus": ["Forward-Bend", "Standing-Strength"],
-    "image_url": "PLACEHOLDER_FOR_ID_20",
-    "translations": { "fr": "", "en": "Half Standing Forward Fold" }
+    "intensity": "moderate",
+    "hip_rotation": "internal",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Flexion Avant avec Ouverture des Épaules", "en": "Half Standing Forward Fold" },
+    "description_en": "From a standing forward fold, lift your chest halfway up and keep your back straight.",
+    "description_fr": "En partant d'une flexion avant debout, levez votre poitrine à mi-chemin et gardez le dos droit."
   },
   {
     "id": 21,
@@ -214,10 +305,14 @@
     "sanskrit_name": "Ardha Chandrasana",
     "difficulty": "Intermediate",
     "source_categories": ["Standing", "Balancing"],
-    "sequence_role": "Pathway",
+    "sequence_role": ["Pathway"],
     "body_focus": ["Balance", "Standing-Strength"],
-    "image_url": "PLACEHOLDER_FOR_ID_21",
-    "translations": { "fr": "", "en": "Half-Moon" }
+    "intensity": "moderate",
+    "hip_rotation": "external",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Demi-Lune", "en": "Half-Moon" },
+    "description_en": "Stand on one leg, open your hips to the side, and reach your hand down to balance while extending the other arm straight up.",
+    "description_fr": "Tenez-vous sur une jambe, ouvrez les hanches sur le côté et descendez une main pour vous équilibrer tout en tendant l'autre bras vers le haut."
   },
   {
     "id": 22,
@@ -225,10 +320,14 @@
     "sanskrit_name": "Adho Mukha Vrksasana",
     "difficulty": "Expert",
     "source_categories": ["Strengthening", "Balancing", "Standing"],
-    "sequence_role": "Peak",
+    "sequence_role": ["Peak"],
     "body_focus": ["Arm-Balance", "Inversion", "Core"],
-    "image_url": "PLACEHOLDER_FOR_ID_22",
-    "translations": { "fr": "", "en": "Handstand" }
+    "intensity": "intense",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Équilibre sur les Mains", "en": "Handstand" },
+    "description_en": "Kick up from a downward dog to balance your body completely upside down on your hands.",
+    "description_fr": "En partant du chien tête en bas, levez les jambes pour tenir votre corps complètement à l'envers sur vos mains."
   },
   {
     "id": 23,
@@ -236,10 +335,14 @@
     "sanskrit_name": "Anjaneyasana",
     "difficulty": "Beginner",
     "source_categories": ["Standing"],
-    "sequence_role": "Pathway",
+    "sequence_role": ["Pathway"],
     "body_focus": ["Hip-Opener", "Standing-Strength"],
-    "image_url": "PLACEHOLDER_FOR_ID_23",
-    "translations": { "fr": "", "en": "Low Lunge" }
+    "intensity": "moderate",
+    "hip_rotation": "internal",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Fente Basse", "en": "Low Lunge" },
+    "description_en": "Step one foot forward between your hands, drop your back knee to the mat, and lift your chest.",
+    "description_fr": "Avancez un pied entre vos mains, posez le genou arrière au sol et levez la poitrine."
   },
   {
     "id": 24,
@@ -247,10 +350,14 @@
     "sanskrit_name": "Supta Kapotasana",
     "difficulty": "Intermediate",
     "source_categories": ["Backbend"],
-    "sequence_role": "Peak",
+    "sequence_role": ["Peak"],
     "body_focus": ["Backbend", "Hip-Opener"],
-    "image_url": "PLACEHOLDER_FOR_ID_24",
-    "translations": { "fr": "", "en": "Pigeon" }
+    "intensity": "moderate",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Pigeon", "en": "Pigeon" },
+    "description_en": "Bring one knee forward between your hands, extend the back leg straight, and fold your upper body forward over the front leg.",
+    "description_fr": "Rapprochez un genou avant entre vos mains, tendez la jambe arrière et pliez le buste vers l'avant au-dessus de la jambe avant."
   },
   {
     "id": 25,
@@ -258,10 +365,14 @@
     "sanskrit_name": "Eka Pada Rajakapotasana",
     "difficulty": "Intermediate",
     "source_categories": ["Backbend", "Hip Opening"],
-    "sequence_role": "Peak",
+    "sequence_role": ["Peak"],
     "body_focus": ["Backbend", "Hip-Opener"],
-    "image_url": "PLACEHOLDER_FOR_ID_25",
-    "translations": { "fr": "", "en": "King Pigeon" }
+    "intensity": "intense",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Roi des Pigeons", "en": "King Pigeon" },
+    "description_en": "From a low lunge, reach back to grab your back foot and arch your back to look up toward the sky.",
+    "description_fr": "En partant d'une fente basse, attrapez votre pied arrière et arquez votre dos pour regarder vers le ciel."
   },
   {
     "id": 26,
@@ -269,10 +380,14 @@
     "sanskrit_name": "Phalakasana",
     "difficulty": "Intermediate",
     "source_categories": ["Core", "Strengthening", "Arm Balance"],
-    "sequence_role": "Pathway",
+    "sequence_role": ["Pathway"],
     "body_focus": ["Arm-Balance", "Core", "Standing-Strength"],
-    "image_url": "PLACEHOLDER_FOR_ID_26",
-    "translations": { "fr": "", "en": "Plank" }
+    "intensity": "moderate",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Planche", "en": "Plank" },
+    "description_en": "Hold a push-up position with your body in a straight line from head to heels.",
+    "description_fr": "Maintenez une position de pompes avec votre corps aligné de la tête aux talons."
   },
   {
     "id": 27,
@@ -280,10 +395,14 @@
     "sanskrit_name": "Halasana",
     "difficulty": "Intermediate",
     "source_categories": ["Inversion"],
-    "sequence_role": "Cooldown",
+    "sequence_role": ["Cooldown"],
     "body_focus": ["Inversion", "Forward-Bend"],
-    "image_url": "PLACEHOLDER_FOR_ID_27",
-    "translations": { "fr": "", "en": "Plow" }
+    "intensity": "moderate",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Charrue", "en": "Plow" },
+    "description_en": "Lie on your back, lift your legs overhead, and touch your toes to the floor behind you.",
+    "description_fr": "Allongez-vous sur le dos, levez vos jambes au-dessus de la tête et touchez le sol derrière vous avec vos orteils."
   },
   {
     "id": 28,
@@ -291,10 +410,14 @@
     "sanskrit_name": "Parsvottanasana",
     "difficulty": "Intermediate",
     "source_categories": ["Forward Bend", "Standing", "Strengthening"],
-    "sequence_role": "Pathway",
+    "sequence_role": ["Pathway"],
     "body_focus": ["Standing-Strength", "Forward-Bend"],
-    "image_url": "PLACEHOLDER_FOR_ID_28",
-    "translations": { "fr": "", "en": "Pyramid" }
+    "intensity": "moderate",
+    "hip_rotation": "internal",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Pyramide", "en": "Pyramid" },
+    "description_en": "Stand with your feet wide, fold forward over your straight front leg, and keep your hips squared forward.",
+    "description_fr": "Écartez les pieds, pliez-vous vers l'avant au-dessus de votre jambe avant tendue et gardez les hanches bien alignées."
   },
   {
     "id": 29,
@@ -302,10 +425,14 @@
     "sanskrit_name": "Parsva Virabhadrasana",
     "difficulty": "Intermediate",
     "source_categories": ["Standing"],
-    "sequence_role": "Pathway",
+    "sequence_role": ["Pathway"],
     "body_focus": ["Standing-Strength", "Backbend"],
-    "image_url": "PLACEHOLDER_FOR_ID_29",
-    "translations": { "fr": "", "en": "Reverse Warrior" }
+    "intensity": "moderate",
+    "hip_rotation": "external",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Guerrier Inversé", "en": "Reverse Warrior" },
+    "description_en": "From a lunge, lean your back torso over the back leg and reach your front arm back towards the floor.",
+    "description_fr": "En partant d'une fente, penchez votre buste vers l'arrière au-dessus de la jambe arrière et tendez le bras avant vers le sol."
   },
   {
     "id": 30,
@@ -313,10 +440,14 @@
     "sanskrit_name": "Paschimottanasana",
     "difficulty": "Beginner",
     "source_categories": ["Seated", "Forward Bend"],
-    "sequence_role": "Cooldown",
+    "sequence_role": ["Cooldown"],
     "body_focus": ["Forward-Bend", "Hip-Opener"],
-    "image_url": "PLACEHOLDER_FOR_ID_30",
-    "translations": { "fr": "", "en": "Seated Forward Bend" }
+    "intensity": "mild",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Flexion Avant Assise", "en": "Seated Forward Bend" },
+    "description_en": "Sit with your legs stretched out in front, reach for your toes, and fold forward over your legs.",
+    "description_fr": "Asseyez-vous avec les jambes tendues devant vous, attrapez vos orteils et pliez le buste vers l'avant."
   },
   {
     "id": 31,
@@ -324,10 +455,14 @@
     "sanskrit_name": "Padmasana",
     "difficulty": "Intermediate",
     "source_categories": ["Seated"],
-    "sequence_role": "Centering",
+    "sequence_role": ["Centering"],
     "body_focus": ["Hip-Opener"],
-    "image_url": "PLACEHOLDER_FOR_ID_31",
-    "translations": { "fr": "", "en": "Lotus" }
+    "intensity": "mild",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Lotus", "en": "Lotus" },
+    "description_en": "Sit cross-legged, place your right foot on your left thigh, then bring your left foot over onto your right thigh.",
+    "description_fr": "Asseyez-vous en tailleur, placez votre pied droit sur votre cuisse gauche, puis amenez votre pied gauche sur votre cuisse droite."
   },
   {
     "id": 32,
@@ -335,10 +470,14 @@
     "sanskrit_name": "Ardha Matsyendrasana",
     "difficulty": "Expert",
     "source_categories": ["Seated", "Hip Opening"],
-    "sequence_role": "Peak / Cooldown",
+    "sequence_role": ["Peak", "Cooldown"],
     "body_focus": ["Twist", "Hip-Opener"],
-    "image_url": "PLACEHOLDER_FOR_ID_32",
-    "translations": { "fr": "", "en": "Half Lord of the Fishes" }
+    "intensity": "moderate",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Demi-Seigneur des Poissons", "en": "Half Lord of the Fishes" },
+    "description_en": "Sit with one knee bent and crossed over the other, twist your torso towards the bent knee.",
+    "description_fr": "Asseyez-vous avec un genou plié et croisé par-dessus l'autre, tournez votre buste vers le genou plié."
   },
   {
     "id": 33,
@@ -346,10 +485,14 @@
     "sanskrit_name": "Salamba Sarvangasana",
     "difficulty": "Intermediate",
     "source_categories": ["Balancing", "Inversion"],
-    "sequence_role": "Cooldown / Peak",
+    "sequence_role": ["Cooldown", "Peak"],
     "body_focus": ["Inversion", "Balance"],
-    "image_url": "PLACEHOLDER_FOR_ID_33",
-    "translations": { "fr": "", "en": "Shoulder Stand" }
+    "intensity": "moderate",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Chandelle", "en": "Shoulder Stand" },
+    "description_en": "Lie on your back, bring your legs overhead, and support your lower back with your hands to raise your legs straight up.",
+    "description_fr": "Allongez-vous sur le dos, levez vos jambes au-dessus de la tête et soutenez votre bas du dos avec les mains pour redresser vos jambes."
   },
   {
     "id": 34,
@@ -357,10 +500,14 @@
     "sanskrit_name": "Vasisthasana",
     "difficulty": "Intermediate",
     "source_categories": ["Core", "Arm Balance", "Balancing"],
-    "sequence_role": "Pathway / Peak",
+    "sequence_role": ["Pathway", "Peak"],
     "body_focus": ["Arm-Balance", "Core", "Balance"],
-    "image_url": "PLACEHOLDER_FOR_ID_34",
-    "translations": { "fr": "", "en": "Side Plank" }
+    "intensity": "moderate",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Planche Latérale", "en": "Side Plank" },
+    "description_en": "Balance on one hand with the side of your body facing the ceiling, stacking your feet one on top of the other.",
+    "description_fr": "Équilibrez-vous sur une main avec le côté du corps face au plafond en superposant vos pieds l'un sur l'autre."
   },
   {
     "id": 35,
@@ -368,10 +515,14 @@
     "sanskrit_name": "Salamba Bhujangasana",
     "difficulty": "Beginner",
     "source_categories": ["Chest Opening", "Backbend"],
-    "sequence_role": "Warming",
+    "sequence_role": ["Warming"],
     "body_focus": ["Backbend", "Core"],
-    "image_url": "PLACEHOLDER_FOR_ID_35",
-    "translations": { "fr": "", "en": "Sphinx" }
+    "intensity": "mild",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Sphinx", "en": "Sphinx" },
+    "description_en": "Lie on your belly, prop your upper body up on your forearms, and gently lengthen through your spine.",
+    "description_fr": "Allongez-vous sur le ventre, soutenez votre buste sur vos avant-bras et allongez doucement votre colonne."
   },
   {
     "id": 36,
@@ -379,10 +530,14 @@
     "sanskrit_name": "Hanumanasana",
     "difficulty": "Expert",
     "source_categories": ["Seated"],
-    "sequence_role": "Peak",
+    "sequence_role": ["Peak"],
     "body_focus": ["Hip-Opener", "Forward-Bend"],
-    "image_url": "PLACEHOLDER_FOR_ID_36",
-    "translations": { "fr": "", "en": "Splits" }
+    "intensity": "intense",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Grand Écart", "en": "Splits" },
+    "description_en": "Slide one leg straight forward and the other straight back to split your legs as flat to the floor as possible.",
+    "description_fr": "Glissez une jambe droite vers l'avant et l'autre vers l'arrière pour écarter vos jambes aussi à plat que possible sur le sol."
   },
   {
     "id": 37,
@@ -390,10 +545,14 @@
     "sanskrit_name": "Malasana",
     "difficulty": "Beginner",
     "source_categories": ["Standing"],
-    "sequence_role": "Warming",
+    "sequence_role": ["Warming"],
     "body_focus": ["Hip-Opener", "Standing-Strength"],
-    "image_url": "PLACEHOLDER_FOR_ID_37",
-    "translations": { "fr": "", "en": "Garland Pose" }
+    "intensity": "moderate",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Guirlande", "en": "Garland Pose" },
+    "description_en": "Squat down with your feet close together, keeping your heels on the ground, and bring your hands together in front of your chest.",
+    "description_fr": "Accroupissez-vous avec les pieds rapprochés en gardant les talons au sol et joignez vos mains devant la poitrine."
   },
   {
     "id": 38,
@@ -401,10 +560,14 @@
     "sanskrit_name": "Uttanasana",
     "difficulty": "Beginner",
     "source_categories": ["Forward Bend"],
-    "sequence_role": "Warming / Pathway",
+    "sequence_role": ["Warming", "Pathway"],
     "body_focus": ["Forward-Bend", "Standing-Strength"],
-    "image_url": "PLACEHOLDER_FOR_ID_38",
-    "translations": { "fr": "", "en": "Standing Forward Bend" }
+    "intensity": "mild",
+    "hip_rotation": "internal",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Flexion Avant Debout", "en": "Standing Forward Bend" },
+    "description_en": "Stand straight, fold forward from your hips, and let your hands rest on the floor or your shins.",
+    "description_fr": "Tenez-vous droit, pliez-vous vers l'avant au niveau des hanches et laissez vos mains reposer sur le sol ou vos tibias."
   },
   {
     "id": 39,
@@ -412,10 +575,14 @@
     "sanskrit_name": "Ashta Chandrasana",
     "difficulty": "Intermediate",
     "source_categories": ["Standing", "Balancing"],
-    "sequence_role": "Pathway",
+    "sequence_role": ["Pathway"],
     "body_focus": ["Standing-Strength", "Balance"],
-    "image_url": "PLACEHOLDER_FOR_ID_39",
-    "translations": { "fr": "", "en": "Crescent Moon" }
+    "intensity": "moderate",
+    "hip_rotation": "internal",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Croissant de Lune", "en": "Crescent Moon" },
+    "description_en": "From a lunge, step your back foot slightly back, drop your hips, and arch your upper body backward.",
+    "description_fr": "En partant d'une fente, reculez légèrement le pied arrière, descendez les hanches et arquez votre buste vers l'arrière."
   },
   {
     "id": 40,
@@ -423,10 +590,14 @@
     "sanskrit_name": "Upavistha Konasana",
     "difficulty": "Expert",
     "source_categories": ["Seated", "Forward Bend", "Hip Opening"],
-    "sequence_role": "Peak",
+    "sequence_role": ["Peak"],
     "body_focus": ["Hip-Opener", "Forward-Bend"],
-    "image_url": "PLACEHOLDER_FOR_ID_40",
-    "translations": { "fr": "", "en": "Side Splits" }
+    "intensity": "intense",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Grand Écart Latéral", "en": "Side Splits" },
+    "description_en": "Sit on the floor, spread your legs as wide as possible, and fold forward over the middle.",
+    "description_fr": "Asseyez-vous sur le sol, écartez les jambes aussi largement que possible et pliez le buste vers l'avant au milieu."
   },
   {
     "id": 41,
@@ -434,10 +605,14 @@
     "sanskrit_name": "Vrksasana",
     "difficulty": "Intermediate",
     "source_categories": ["Standing", "Balancing"],
-    "sequence_role": "Pathway",
+    "sequence_role": ["Pathway"],
     "body_focus": ["Balance", "Standing-Strength"],
-    "image_url": "PLACEHOLDER_FOR_ID_41",
-    "translations": { "fr": "", "en": "Tree" }
+    "intensity": "moderate",
+    "hip_rotation": "external",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Arbre", "en": "Tree" },
+    "description_en": "Stand on one leg, rest the sole of the other foot on your inner thigh, and raise your arms overhead.",
+    "description_fr": "Tenez-vous sur une jambe, posez la plante de l'autre pied sur votre cuisse intérieure et levez les bras au-dessus de la tête."
   },
   {
     "id": 42,
@@ -445,10 +620,14 @@
     "sanskrit_name": "Trikonasana",
     "difficulty": "Beginner",
     "source_categories": ["Strengthening", "Standing"],
-    "sequence_role": "Pathway",
+    "sequence_role": ["Pathway"],
     "body_focus": ["Standing-Strength", "Hip-Opener"],
-    "image_url": "PLACEHOLDER_FOR_ID_42",
-    "translations": { "fr": "", "en": "Triangle" }
+    "intensity": "moderate",
+    "hip_rotation": "external",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Triangle", "en": "Triangle" },
+    "description_en": "Step into a wide stance, reach one hand to your ankle, and extend the other arm directly toward the ceiling.",
+    "description_fr": "Écartez les pieds, tendez une main vers votre cheville et étendez l'autre bras directement vers le plafond."
   },
   {
     "id": 43,
@@ -456,10 +635,14 @@
     "sanskrit_name": "Urdhva Mukha Svanasana",
     "difficulty": "Intermediate",
     "source_categories": ["Chest Opening", "Backbend"],
-    "sequence_role": "Warming / Pathway",
+    "sequence_role": ["Warming", "Pathway"],
     "body_focus": ["Backbend", "Core"],
-    "image_url": "PLACEHOLDER_FOR_ID_43",
-    "translations": { "fr": "", "en": "Upward-Facing Dog" }
+    "intensity": "moderate",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Chien Tête Haute", "en": "Upward-Facing Dog" },
+    "description_en": "Lie on your belly, press your palms into the floor, and lift your chest, hips, and thighs off the mat.",
+    "description_fr": "Allongez-vous sur le ventre, poussez vos paumes dans le sol et soulevez votre poitrine, vos hanches et vos cuisses du tapis."
   },
   {
     "id": 44,
@@ -467,10 +650,14 @@
     "sanskrit_name": "Virabhadrasana I",
     "difficulty": "Beginner",
     "source_categories": ["Strengthening", "Standing"],
-    "sequence_role": "Pathway",
+    "sequence_role": ["Pathway"],
     "body_focus": ["Standing-Strength", "Hip-Opener"],
-    "image_url": "PLACEHOLDER_FOR_ID_44",
-    "translations": { "fr": "", "en": "Warrior One" }
+    "intensity": "moderate",
+    "hip_rotation": "internal",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Guerrier Un", "en": "Warrior One" },
+    "description_en": "Step one foot forward into a lunge, keep your back heel planted, and reach your arms straight up.",
+    "description_fr": "Avancez un pied en fente, gardez votre talon arrière posé au sol et tendez vos bras verticalement."
   },
   {
     "id": 45,
@@ -478,10 +665,14 @@
     "sanskrit_name": "Virabhadrasana II",
     "difficulty": "Beginner",
     "source_categories": ["Strengthening", "Standing"],
-    "sequence_role": "Pathway",
+    "sequence_role": ["Pathway"],
     "body_focus": ["Standing-Strength", "Hip-Opener"],
-    "image_url": "PLACEHOLDER_FOR_ID_45",
-    "translations": { "fr": "", "en": "Warrior Two" }
+    "intensity": "moderate",
+    "hip_rotation": "external",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Guerrier Deux", "en": "Warrior Two" },
+    "description_en": "Widen your stance, bend your front knee, and stretch your arms out horizontally in line with your shoulders.",
+    "description_fr": "Écartez vos pieds, pliez votre genou avant et étirez vos bras horizontalement à la hauteur des épaules."
   },
   {
     "id": 46,
@@ -489,10 +680,14 @@
     "sanskrit_name": "Virabhadrasana III",
     "difficulty": "Expert",
     "source_categories": ["Strengthening", "Standing", "Balancing"],
-    "sequence_role": "Pathway / Peak",
+    "sequence_role": ["Pathway", "Peak"],
     "body_focus": ["Standing-Strength", "Balance", "Core"],
-    "image_url": "PLACEHOLDER_FOR_ID_46",
-    "translations": { "fr": "", "en": "Warrior Three" }
+    "intensity": "moderate",
+    "hip_rotation": "internal",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Guerrier Trois", "en": "Warrior Three" },
+    "description_en": "Stand on one leg, lean your torso forward, and extend your other leg straight back to form a 'T' shape.",
+    "description_fr": "Tenez-vous sur une jambe, penchez votre buste vers l'avant et tendez l'autre jambe en arrière pour former un T."
   },
   {
     "id": 47,
@@ -500,10 +695,14 @@
     "sanskrit_name": "Urdhva Dhanurasana",
     "difficulty": "Expert",
     "source_categories": ["Strengthening", "Chest Opening", "Backbend"],
-    "sequence_role": "Peak",
+    "sequence_role": ["Peak"],
     "body_focus": ["Backbend", "Arm-Balance"],
-    "image_url": "PLACEHOLDER_FOR_ID_47",
-    "translations": { "fr": "", "en": "Wheel" }
+    "intensity": "intense",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Roue", "en": "Wheel" },
+    "description_en": "Lie on your back, bring your hands under your shoulders, and press up to arch your body off the ground.",
+    "description_fr": "Allongez-vous sur le dos, placez vos mains sous vos épaules et poussez vers le haut pour arquer votre corps hors du sol."
   },
   {
     "id": 48,
@@ -511,9 +710,13 @@
     "sanskrit_name": "Camatkarasana",
     "difficulty": "Intermediate",
     "source_categories": ["Chest Opening", "Arm Balance"],
-    "sequence_role": "Peak",
+    "sequence_role": ["Peak"],
     "body_focus": ["Backbend", "Arm-Balance", "Inversion"],
-    "image_url": "PLACEHOLDER_FOR_ID_48",
-    "translations": { "fr": "", "en": "Wild Thing" }
+    "intensity": "intense",
+    "hip_rotation": "neutral",
+    "image_url": "https://cdn-icons-png.flaticon.com/128/1822/1822993.png",
+    "translations": { "fr": "Wild Thing", "en": "Wild Thing" },
+    "description_en": "From a side plank, lift your top arm overhead, step your top leg back, and let your chest open upward.",
+    "description_fr": "En partant d'une planche latérale, levez votre bras supérieur au-dessus de la tête, reculez votre jambe supérieure et ouvrez votre poitrine vers le haut."
   }
 ]
