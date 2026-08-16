@@ -10,6 +10,20 @@ import { generateSession } from '../session-generator.js';
 // --- TEST HARNESS ---
 const output = document.getElementById('test-output');
 
+// Add this at the top of tests/session-generator.test.js
+function mulberry32(a) {
+    return function() {
+        a |= 0; a = a + 0x6D2B79F5 | 0;
+        var t = Math.imul(a ^ a >>> 15, 1 | a);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+}
+
+// Use it in tests
+const rng = mulberry32(12345); // Fixed seed
+const session = generateSession(poses, 20, 'strengthen', 'medium', [], {}, rng);
+
 function createLog(msg, isPass = true, counterObj) {
     const div = document.createElement('div');
     div.textContent = msg;
@@ -114,17 +128,18 @@ export async function runGeneratorTests() {
     runTest('Plow (id 27) is gated below Level 41 (never appears at 40)', !plowAt40, counters);
     runTest('Plow (id 27) is allowed at Level 50 (appears at least once in 100 runs)', plowAt50, counters);
 
-    // --- SUITE 6: Duration Pose-Counts ---
+    // --- SUITE 6: Duration Pose-Counts (Block B.2) ---
     createLog('\n--- SUITE 6: Duration Pose-Counts ---', true, counters);
     const shortSession = generateSession(poses, 20, 'relax', 'short');
-    runTest('Short session respects total pose count (≤ 15)', shortSession.length <= 15, counters);
+    runTest('Short session respects pose count range (8-10)', shortSession.length >= 8 && shortSession.length <= 10, counters);
 
     const mediumSession = generateSession(poses, 20, 'strengthen', 'medium');
-    runTest('Medium session respects total pose count (≤ 20)', mediumSession.length <= 20, counters);
+    runTest('Medium session respects pose count range (12-15)', mediumSession.length >= 12 && mediumSession.length <= 15, counters);
 
     const longSession = generateSession(poses, 20, 'strengthen', 'long');
-    runTest('Long session respects total pose count (≤ 25)', longSession.length <= 25, counters);
+    runTest('Long session respects pose count range (16-20)', longSession.length >= 16 && longSession.length <= 20, counters);
 
+    
     // --- SUITE 7: Focus Filtering (100 runs each) ---
     createLog('\n--- SUITE 7: Focus Filtering ---', true, counters);
     let strengthTotal = 0, relaxTotal = 0;

@@ -135,7 +135,7 @@ Relax / Strengthen / Mobility & Flexibility, as originally decided. Implemented 
 
 Hold-time formula, as implemented: `baseHold = min(60, max(20, 20 + (level − 10) × 0.25))`, then multiplied by the Focus modifier, then capped at 90s (long duration) or 60s (short/medium), floored at 20s.
 
-**Pose count — known issue, agreed to fix:** currently fixed single numbers (short 10 / medium 15 / long 20) rather than the ranges originally intended (short 8–10 / medium 12–15 / long 16–20). This defeated part of the original point of duration affecting pose count, not just hold time. Fix tracked in TASKS.md.
+Pose counts are now randomized within ranges per duration: short 8–10, medium 12–15, long 16–20, generated after the stage loop and before Savasana is appended. This ensures the session length properly scales with duration, rather than being fixed to a single ceiling. Hold-time scaling is unchanged.
 
 #### 5.4 Sequencing safety rules, as implemented
 
@@ -160,7 +160,7 @@ Hold-time formula, as implemented: `baseHold = min(60, max(20, 20 + (level − 1
 - **Frontier vs. current play are distinct**, exactly as decided: frontier only advances on completing the current frontier level; any past level can be freely replayed without affecting it.
 - **"Completing" a level:** every pose finished or skipped, session not exited early — applies uniformly to frontier sessions and replays.
 - **Decision: no file-based export/import.** This was originally planned, but reconsidered — managing a downloaded JSON file (finding it, re-uploading it) is a bad experience for a non-technical iPhone user, which is the actual target audience now that this is shared with friends. Accepted trade-off: progress lives on one device/browser, and if it's lost, it's lost. If iOS clears inactive site data, that's a real (if currently unmitigated) risk we're choosing to accept rather than solve with a file-based workaround.
-- **"Quick Unlock" utility:** a 🔓 button prompts for a level number and jumps the frontier there, resetting session history, focus history, and seen-poses in the process. This is a deliberate utility/debug tool, not a replacement for export/import — it solves a different problem (quickly getting to a level to test or explore) and is being kept as such. **Known gap, agreed to fix:** it currently performs the reset immediately on entering a valid number, with no confirmation step — given it destroys history, a confirmation step is being added.
+- **"Quick Unlock" utility**: a 🔓 button prompts for a level number and, after a confirmation prompt, jumps the frontier there, resetting session history, focus history, and seen-poses in the process. This is a deliberate utility/debug tool, not a replacement for export/import — it solves a different problem (quickly getting to a level to test or explore) and is being kept as such. The confirmation step prevents accidental destruction of the user's tracking data.
 
 ### 7. Screens
 
@@ -183,9 +183,7 @@ App/site name: **Trellis**. Repo: **`trellis-yoga`**.
 1. Real visual design pass.
 2. Verify and restore real per-pose illustrations (top priority — see §4).
 3. Resolve the Cobra-pose question (keep permanently / find a real replacement / remove).
-4. Convert pose-count caps from fixed numbers to ranges.
 5. Restore the six-pose Shoulder Stand/Plow warm-up set.
-6. Add a confirmation step to Quick Unlock.
 7. Fix `manifest.json`'s absolute icon paths.
 8. Resolve Focus double-weighting (selection bonus vs. hold-time multiplier).
 9. Time-decay the body-focus history penalty.

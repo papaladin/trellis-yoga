@@ -3,9 +3,9 @@
  * ------
  * Purpose: The main controller for the Trellis app.
  * 
- * Updates in this version:
- * - Stores the completed level in a local variable before passing to completion screen.
- * - This ensures replays show the correct level.
+ * Updates in this version (Block G.2 & G.5):
+ * - Added sliding window (14 days) for body-focus history.
+ * - Added soft gong chime using Web Audio API.
  */
 
 import { loadState, saveState } from './storage.js';
@@ -27,10 +27,12 @@ class TrellisApp {
         this.lastTickTimestamp = 0;
         this.lastSuggestedFocus = null;
         this.lastSuggestedLevel = null;
+        this.audioContext = null; // Will be initialized on first user interaction
     }
 
     // --- TRANSLATION HELPER ---
     t(key, replacements = {}) {
+        if (!this.state) return key;
         const lang = this.state.lang || 'en';
         let str = LOCALES[lang][key] || key;
         for (const [placeholder, value] of Object.entries(replacements)) {
@@ -78,37 +80,27 @@ class TrellisApp {
     renderStaticLabels() {
         const t = (key, reps) => this.t(key, reps);
 
-        // Loading screen
         document.querySelector('#loading-screen p').textContent = t('loadingText');
-
-        // HUD Labels
         document.getElementById('focus-label').textContent = t('focusLabel');
         document.getElementById('duration-label').textContent = t('durationLabel');
 
-        // Focus Buttons
         document.querySelectorAll('.focus-btn').forEach(btn => {
             const focus = btn.dataset.focus;
             btn.textContent = t(focus + 'Btn');
         });
-        // Duration Buttons
         document.querySelectorAll('.duration-btn').forEach(btn => {
             const dur = btn.dataset.duration;
             btn.textContent = t(dur + 'Btn');
         });
 
-        // Attribution & Unlock
         document.getElementById('unlock-btn').title = t('unlockTitle');
-
-        // Session Screen Controls
         document.getElementById('exit-session').textContent = t('exitBtn');
         document.getElementById('skip-pose').textContent = t('skipBtn');
         document.getElementById('pause-timer').textContent = this.isPaused ? t('resumeBtn') : t('pauseBtn');
 
-        // Completion Screen
         document.querySelector('#completion-screen h2').textContent = t('completeTitle');
         document.getElementById('continue-home').textContent = t('returnHomeBtn');
 
-        // Disclaimer Modal
         document.querySelector('#safety-disclaimer h2').textContent = t('disclaimerTitle');
         document.querySelector('#safety-disclaimer p').textContent = t('disclaimerBody');
         document.getElementById('disclaimer-acknowledge').textContent = t('disclaimerBtn');
@@ -223,6 +215,39 @@ class TrellisApp {
         }
     }
 
+    // --- WEB AUDIO GONG (G.5) ---
+    playGong() {
+        try {
+            // Initialize AudioContext on user interaction
+            if (!this.audioContext) {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            // Resume if suspended (required by iOS)
+            if (this.audioContext.state === 'suspended') {
+                this.audioContext.resume();
+            }
+
+            // Create a soft gong (sine wave, fading out)
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(440, this.audioContext.currentTime); // A4
+
+            gain.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 1.2);
+
+            osc.connect(gain);
+            gain.connect(this.audioContext.destination);
+
+            osc.start(this.audioContext.currentTime);
+            osc.stop(this.audioContext.currentTime + 1.2);
+        } catch (err) {
+            console.warn('Audio chime failed:', err);
+        }
+    }
+
     // --- SESSION TIMER ---
     updateTimerDisplay() {
         const mins = Math.floor(Math.max(0, this.remainingSeconds) / 60);
@@ -241,6 +266,10 @@ class TrellisApp {
             if (this.remainingSeconds <= 0) {
                 this.remainingSeconds = 0;
                 this.updateTimerDisplay();
+                
+                // G.5: Play the chime when the timer hits 0
+                this.playGong();
+
                 clearInterval(this.timerInterval);
                 this.timerInterval = null;
                 this.sessionIndex++;
@@ -249,11 +278,35 @@ class TrellisApp {
         }, 100);
     }
 
+    // --- G.2: SLIDING WINDOW COMPUTER ---
+    computeRecentBodyFocusHistory(state) {
+        const now = Date.now();
+        const cutoff = now - (14 * 24 * 60 * 60 * 1000); // 14 days ago
+        const recentSessions = state.recentSessions.filter(s => 
+            new Date(s.timestamp).getTime() > cutoff
+        );
+        let history = {};
+        recentSessions.forEach(session => {
+            session.posesUsed.forEach(poseId => {
+                const pose = state.poses.find(p => p.id === poseId);
+                if (pose) {
+                    pose.body_focus.forEach(tag => {
+                        history[tag] = (history[tag] || 0) + 1;
+                    });
+                }
+            });
+        });
+        return history;
+    }
+
     // --- SESSION FLOW ---
     startSession(level) {
         this.state.currentLevel = level;
         this.state.lastPlayedLevel = level;
         saveState(this.state);
+        
+        // G.2: Replace lifetime history with 14-day rolling history
+        const recentBodyFocusHistory = this.computeRecentBodyFocusHistory(this.state);
         
         this.currentSession = generateSession(
             this.state.poses, 
@@ -261,7 +314,7 @@ class TrellisApp {
             this.state.focus, 
             this.state.duration, 
             this.state.seenPoses,
-            this.state.bodyFocusHistory
+            recentBodyFocusHistory // Pass the computed window
         );
         this.sessionIndex = 0;
         
@@ -274,7 +327,6 @@ class TrellisApp {
     displayPose(index) {
         const sessionItem = this.currentSession[index];
         if (!sessionItem) {
-            // Store the completed level locally to avoid any state mutation issues
             const completedLevel = this.state.currentLevel;
             this.displayCompletionScreen(completedLevel);
             return;
@@ -282,7 +334,7 @@ class TrellisApp {
         document.getElementById('pose-progress').textContent = `${index + 1} / ${this.currentSession.length}`;
         
         const pose = sessionItem.pose;
-        const side = sessionItem.side; // 'left', 'right', or undefined
+        const side = sessionItem.side;
 
         let poseName = pose.translations[this.state.lang] || pose.english_name;
         if (side === 'left') {
@@ -344,6 +396,7 @@ class TrellisApp {
             const currentPoseIds = this.currentSession.map(item => item.pose.id);
             this.state.seenPoses = [...new Set([...this.state.seenPoses, ...currentPoseIds])];
 
+            // We still update the persistent history, but it's now aggregated by the sliding window on next load
             this.currentSession.forEach(item => {
                 item.pose.body_focus.forEach(tag => {
                     if (this.state.bodyFocusHistory[tag]) {
@@ -358,7 +411,6 @@ class TrellisApp {
         if (completed && this.state.currentLevel === this.state.frontierLevel) {
             this.state.frontierLevel++;
             this.state.lastPlayedLevel = this.state.frontierLevel;
-
 
             saveState(this.state);
             this.renderTrellis();
@@ -409,6 +461,11 @@ class TrellisApp {
 
                 const targetLevel = parseInt(input, 10);
                 if (!isNaN(targetLevel) && targetLevel >= 1 && targetLevel <= MAX_LEVEL) {
+                    const confirmed = confirm(
+                        `This will reset your recent session history, focus tracking, and pose progress. Are you sure you want to jump to Level ${targetLevel}?`
+                    );
+                    if (!confirmed) return;
+
                     app.state.frontierLevel = targetLevel;
                     app.state.lastPlayedLevel = targetLevel;
                     app.state.recentSessions = [];

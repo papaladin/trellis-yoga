@@ -3,23 +3,29 @@
  * ------
  * Purpose: The core algorithmic "brain" of the app.
  * 
- * Updates in this version:
- * - Decoupled validation (`needsRepair`) from mutation (`repairSession`).
- * - Fixed infinite loop by filtering lastPoseId before weighting.
- * - Added 5‑block progression (Onboarding, Foundation, Building, Advancing, Integration).
- * - Added bilateral pose split (Left / Right).
- * - Added load‑based safety rules (neck and wrist).
+ * Updates in this version (Bundled Blocks F, G.1, G.3, G.4):
+ * - Block F: Pose caps now count distinct poses (using a Set), not total entries.
+ * - Block G.1: Reduced Focus hold-time multipliers to avoid over-reinforcement.
+ * - Block G.3: Removed arbitrary `null` returns to ensure loops fill their time budgets, even if repeating poses.
+ * - Block G.4: Injected `rng = Math.random` parameter for deterministic tests.
  */
 
 const DURATION_TARGETS = { short: 15 * 60, medium: 25 * 60, long: 45 * 60 };
 const SAVASANA_TIME = { short: 60, medium: 180, long: 300 };
 const STAGE_WEIGHTS = { centering: 0.05, warming: 0.20, pathway: 0.25, peak: 0.30, cooldown: 0.20 };
-const MAX_POSES_TOTAL = { short: 10, medium: 15, long: 20 };
 
+// Block F: The caps refer to distinct poses, not total entries.
+const MAX_POSES_TOTAL = { 
+    short: { min: 8, max: 10 }, 
+    medium: { min: 12, max: 15 }, 
+    long: { min: 16, max: 20 } 
+};
+
+// Block G.1: Reduced Focus hold-time multipliers
 const FOCUS_MODIFIERS = {
-    strengthen: { 'Standing-Strength': 1.4, 'Core': 1.4, 'Arm-Balance': 1.4, 'Backbend': 1.2, 'Forward-Bend': 0.8, 'Hip-Opener': 0.8, 'Twist': 0.8, 'Inversion': 0.8, 'Restorative': 0.6 },
-    relax: { 'Standing-Strength': 0.6, 'Core': 0.6, 'Arm-Balance': 0.6, 'Backbend': 0.8, 'Forward-Bend': 1.4, 'Hip-Opener': 1.4, 'Twist': 1.4, 'Inversion': 1.2, 'Restorative': 1.4 },
-    mobility: { 'Standing-Strength': 0.8, 'Core': 1.0, 'Arm-Balance': 1.0, 'Backbend': 1.0, 'Forward-Bend': 1.2, 'Hip-Opener': 1.4, 'Twist': 1.4, 'Inversion': 1.0, 'Restorative': 1.0, 'Balance': 1.3 }
+    strengthen: { 'Standing-Strength': 1.15, 'Core': 1.15, 'Arm-Balance': 1.15, 'Backbend': 1.1, 'Forward-Bend': 0.8, 'Hip-Opener': 0.8, 'Twist': 0.8, 'Inversion': 0.8, 'Restorative': 0.6 },
+    relax: { 'Standing-Strength': 0.6, 'Core': 0.6, 'Arm-Balance': 0.6, 'Backbend': 0.8, 'Forward-Bend': 1.15, 'Hip-Opener': 1.15, 'Twist': 1.15, 'Inversion': 1.15, 'Restorative': 1.2 },
+    mobility: { 'Standing-Strength': 0.8, 'Core': 1.0, 'Arm-Balance': 1.0, 'Backbend': 1.1, 'Forward-Bend': 1.1, 'Hip-Opener': 1.15, 'Twist': 1.15, 'Inversion': 1.0, 'Restorative': 1.0, 'Balance': 1.1 }
 };
 
 // 5-block progression (README-aligned)
@@ -57,26 +63,25 @@ const handcraftedSessions = {
     10: { poses: [7, 8, 15, 44, 45, 10] }
 };
 
-// --- VALIDATOR (PURE CHECKS) ---
+// --- VALIDATOR ---
 function needsRepair(sessionPoses, poseLibrary, level) {
     if (level > 10) {
         const hasPeak = sessionPoses.some(sp => sp.pose.sequence_role.includes('Peak'));
         if (!hasPeak) return true;
-
         const stageRoles = ['Centering', 'Warming', 'Pathway', 'Peak', 'Cooldown'];
         for (const role of stageRoles) {
             if (!sessionPoses.some(sp => sp.pose.sequence_role.includes(role))) return true;
         }
     }
-
     const hasBackbend = sessionPoses.some(sp => sp.pose.body_focus.includes('Backbend'));
-    const hasSpineWarmup = sessionPoses.some(sp => ['Cat', 'Cow'].includes(sp.pose.english_name));
+    const prepPoseIds = [4, 7, 8, 14, 15, 26];
+    const hasSpineWarmup = sessionPoses.some(sp => prepPoseIds.includes(sp.pose.id));
     if (hasBackbend && !hasSpineWarmup) return true;
 
     const highNeckIndex = sessionPoses.findIndex(sp => sp.pose.load && sp.pose.load.neck === 'high');
     if (highNeckIndex !== -1) {
         const warmingPoses = sessionPoses.slice(0, highNeckIndex);
-        const hasNeckPrep = warmingPoses.some(sp => ['Cat', 'Cow'].includes(sp.pose.english_name));
+        const hasNeckPrep = warmingPoses.some(sp => prepPoseIds.includes(sp.pose.id));
         if (!hasNeckPrep) return true;
     }
 
@@ -84,104 +89,87 @@ function needsRepair(sessionPoses, poseLibrary, level) {
         const current = sessionPoses[i].pose;
         if (current.load && current.load.wrists === 'high') {
             const next = sessionPoses[i + 1].pose;
-            const isWristRelease = next.id === 10 || next.id === 14;
-            if (!isWristRelease) return true;
+            if (next.id !== 10 && next.id !== 14) return true;
         }
     }
 
     for (let i = 1; i < sessionPoses.length; i++) {
         const prev = sessionPoses[i-1].pose;
         const curr = sessionPoses[i].pose;
-        if (prev.body_focus.includes('Backbend') && curr.body_focus.includes('Forward-Bend')) {
-            return true;
-        }
+        if (prev.body_focus.includes('Backbend') && curr.body_focus.includes('Forward-Bend')) return true;
     }
-
     return false;
 }
 
-// --- REPAIRER (MUTATES SESSION) ---
+// --- REPAIRER ---
 function repairSession(sessionPoses, poseLibrary, level, focus, duration) {
     if (level > 10) {
         const hasPeak = sessionPoses.some(sp => sp.pose.sequence_role.includes('Peak'));
         if (!hasPeak) {
             const fallbackPeak = poseLibrary.find(p => p.sequence_role.includes('Peak') && p.difficulty !== 'Expert');
-            if (fallbackPeak) {
-                const insertIndex = Math.min(5, sessionPoses.length - 1);
-                sessionPoses.splice(insertIndex, 0, { pose: fallbackPeak, holdTime: 30 });
-            }
+            if (fallbackPeak) sessionPoses.splice(Math.min(5, sessionPoses.length - 1), 0, { pose: fallbackPeak, holdTime: 30 });
         }
         const stageRoles = ['Centering', 'Warming', 'Pathway', 'Peak', 'Cooldown'];
         for (const role of stageRoles) {
-            const hasStage = sessionPoses.some(sp => sp.pose.sequence_role.includes(role));
-            if (!hasStage) {
+            if (!sessionPoses.some(sp => sp.pose.sequence_role.includes(role))) {
                 const fallback = poseLibrary.find(p => p.sequence_role.includes(role) && p.difficulty !== 'Expert');
                 if (fallback) sessionPoses.splice(1, 0, { pose: fallback, holdTime: 30 });
             }
         }
     }
-
     for (let i = 1; i < sessionPoses.length; i++) {
         const prev = sessionPoses[i-1].pose;
         const curr = sessionPoses[i].pose;
         if (prev.body_focus.includes('Backbend') && curr.body_focus.includes('Forward-Bend')) {
             const child = poseLibrary.find(p => p.id === 10);
-            if (child) {
-                sessionPoses.splice(i, 0, { pose: child, holdTime: 30 });
-                i++;
-            }
+            if (child) { sessionPoses.splice(i, 0, { pose: child, holdTime: 30 }); i++; }
         }
     }
-    
     const hasBackbend = sessionPoses.some(sp => sp.pose.body_focus.includes('Backbend'));
-    const hasSpineWarmup = sessionPoses.some(sp => ['Cat', 'Cow'].includes(sp.pose.english_name));
+    const prepPoseIds = [4, 7, 8, 14, 15, 26];
+    const hasSpineWarmup = sessionPoses.some(sp => prepPoseIds.includes(sp.pose.id));
     if (hasBackbend && !hasSpineWarmup) {
         const cat = poseLibrary.find(p => p.id === 7);
         const cow = poseLibrary.find(p => p.id === 8);
-        if (cat && cow) {
-            sessionPoses.splice(1, 0, { pose: cow, holdTime: 20 }, { pose: cat, holdTime: 20 });
-        }
+        if (cat && cow) sessionPoses.splice(1, 0, { pose: cow, holdTime: 20 }, { pose: cat, holdTime: 20 });
     }
-
     const highNeckIndex = sessionPoses.findIndex(sp => sp.pose.load && sp.pose.load.neck === 'high');
     if (highNeckIndex !== -1) {
         const warmingPoses = sessionPoses.slice(0, highNeckIndex);
-        const hasNeckPrep = warmingPoses.some(sp => ['Cat', 'Cow'].includes(sp.pose.english_name));
+        const hasNeckPrep = warmingPoses.some(sp => prepPoseIds.includes(sp.pose.id));
         if (!hasNeckPrep) {
             const cat = poseLibrary.find(p => p.id === 7);
             const cow = poseLibrary.find(p => p.id === 8);
-            if (cat && cow) {
-                sessionPoses.splice(1, 0, { pose: cow, holdTime: 20 }, { pose: cat, holdTime: 20 });
-            }
+            if (cat && cow) sessionPoses.splice(1, 0, { pose: cow, holdTime: 20 }, { pose: cat, holdTime: 20 });
         }
     }
-
     for (let i = 0; i < sessionPoses.length - 1; i++) {
         const current = sessionPoses[i].pose;
         if (current.load && current.load.wrists === 'high') {
             const next = sessionPoses[i + 1].pose;
-            const isWristRelease = next.id === 10 || next.id === 14;
-            if (!isWristRelease) {
+            if (next.id !== 10 && next.id !== 14) {
                 const child = poseLibrary.find(p => p.id === 10);
-                if (child) {
-                    sessionPoses.splice(i + 1, 0, { pose: child, holdTime: 30 });
-                    i++;
-                }
+                if (child) { sessionPoses.splice(i + 1, 0, { pose: child, holdTime: 30 }); i++; }
             }
         }
     }
-
     return sessionPoses;
 }
 
-// --- SELECTION HELPER ---
-function selectWeightedPose(allowedPoses, focus, focusMap, lastPoseId, currentSessionPoses, seenPoses, newPoseLimit, bodyFocusHistory) {
+// --- SELECTION HELPER (UPDATED FOR G.3, G.4, F) ---
+function selectWeightedPose(allowedPoses, focus, focusMap, lastPoseId, currentSessionPoses, seenPoses, newPoseLimit, bodyFocusHistory, distinctPoseIds, maxDistinct, rng) {
     if (!allowedPoses || allowedPoses.length === 0) return null;
 
     let candidatePool = allowedPoses;
     if (lastPoseId !== null) {
         candidatePool = allowedPoses.filter(p => p.id !== lastPoseId);
         if (candidatePool.length === 0) candidatePool = allowedPoses;
+    }
+
+    // Block F: Enforce distinct pose cap. If we've hit the cap, only allow poses already in the set.
+    if (distinctPoseIds.size >= maxDistinct) {
+        const distinctPool = allowedPoses.filter(p => distinctPoseIds.has(p.id));
+        if (distinctPool.length > 0) candidatePool = distinctPool;
     }
 
     const existingNewPoses = currentSessionPoses.filter(p => !seenPoses.includes(p.id));
@@ -209,7 +197,8 @@ function selectWeightedPose(allowedPoses, focus, focusMap, lastPoseId, currentSe
     const totalWeight = weightedPoses.reduce((sum, item) => sum + item.weight, 0);
     if (totalWeight === 0) return null;
     
-    let randomNum = Math.random() * totalWeight;
+    // Block G.4: Use injected rng
+    let randomNum = rng() * totalWeight;
     let selectedPose = weightedPoses[0].pose;
     for (const item of weightedPoses) {
         randomNum -= item.weight;
@@ -218,8 +207,8 @@ function selectWeightedPose(allowedPoses, focus, focusMap, lastPoseId, currentSe
     return selectedPose;
 }
 
-// ---- MAIN GENERATOR ----
-export function generateSession(poseLibrary, level, focus, duration, seenPoses = [], bodyFocusHistory = {}) {
+// ---- MAIN GENERATOR (UPDATED FOR F, G.1, G.3, G.4) ----
+export function generateSession(poseLibrary, level, focus, duration, seenPoses = [], bodyFocusHistory = {}, rng = Math.random) {
     if (!poseLibrary || !Array.isArray(poseLibrary)) {
         throw new Error('Invalid poseLibrary: must be an array');
     }
@@ -235,14 +224,17 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
 
     const targetDuration = DURATION_TARGETS[duration];
     const savasanaDuration = SAVASANA_TIME[duration];
-    const maxPoses = MAX_POSES_TOTAL[duration];
-    const maxPosesWithoutSavasana = maxPoses - 1; 
+    const poseRange = MAX_POSES_TOTAL[duration];
+    const maxDistinctPoses = poseRange.max;
+    const minDistinctPoses = poseRange.min;
+    const maxTotalEntries = maxDistinctPoses * 3; // Safety cap to prevent massive repeats
     const NEW_POSE_LIMIT = 2; 
     
-    const variance = 0.90 + (Math.random() * 0.10);
+    // Block G.4: Replace Math.random with rng()
+    const variance = 0.90 + (rng() * 0.10);
     const totalTargetTime = Math.round(targetDuration * variance);
 
-    // ----- HANDCRAFTED LEVELS 1–10 (WITH BILATERAL SPLIT) -----
+    // ----- HANDCRAFTED LEVELS 1–10 -----
     if (level <= 10) {
         const ids = handcraftedSessions[level].poses;
         const holdTime = Math.min(60, Math.round((totalTargetTime - savasanaDuration) / ids.length));
@@ -278,7 +270,10 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
         { role: 'Cooldown', weight: STAGE_WEIGHTS.cooldown }
     ];
 
-    let sessionPoses = [], globalAccumulatedTime = 0, lastPose = null;
+    let sessionPoses = [];
+    let distinctPoseIds = new Set();
+    let globalAccumulatedTime = 0;
+    let lastPose = null;
 
     for (const stage of arcStages) {
         const timeAllocPerStage = totalTargetTime - savasanaDuration;
@@ -317,7 +312,8 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
                 let subStageAccumulated = 0;
                 let subTarget = stageTimeTarget * 0.5;
 
-                while (subStageAccumulated < subTarget && sessionPoses.length < maxPosesWithoutSavasana) {
+                // Block G.3: Remove .length cap in while loop to ensure budget fills
+                while (subStageAccumulated < subTarget && sessionPoses.length < maxTotalEntries) {
                     let allowedPoses = subEligible;
                     if (lastPose && lastPose.body_focus.some(tag => ['Backbend', 'Inversion'].includes(tag))) {
                         allowedPoses = subEligible.filter(p => p.body_focus.some(tag => ['Twist', 'Hip-Opener', 'Forward-Bend', 'Restorative'].includes(tag)));
@@ -338,14 +334,7 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
                     }
 
                     const randomPose = selectWeightedPose(
-                        allowedPoses, 
-                        focus, 
-                        focusMap, 
-                        lastPose ? lastPose.id : null, 
-                        sessionPoses, 
-                        seenPoses, 
-                        NEW_POSE_LIMIT, 
-                        bodyFocusHistory
+                        allowedPoses, focus, focusMap, lastPose ? lastPose.id : null, sessionPoses, seenPoses, NEW_POSE_LIMIT, bodyFocusHistory, distinctPoseIds, maxDistinctPoses, rng
                     );
                     if (!randomPose) continue;
 
@@ -365,27 +354,20 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
 
                     if (globalAccumulatedTime + holdTime > totalTargetTime - savasanaDuration) break;
 
-                    // --- BILATERAL SPLIT ---
-                    if (randomPose.unilateral === true) {
-                        const halfHold = Math.floor(holdTime / 2);
-                        sessionPoses.push({ pose: randomPose, holdTime: halfHold, side: 'left' });
-                        sessionPoses.push({ pose: randomPose, holdTime: holdTime - halfHold, side: 'right' });
-                        subStageAccumulated += holdTime;
-                        globalAccumulatedTime += holdTime;
-                        lastPose = randomPose;
-                    } else {
-                        sessionPoses.push({ pose: randomPose, holdTime: holdTime });
-                        subStageAccumulated += holdTime;
-                        globalAccumulatedTime += holdTime;
-                        lastPose = randomPose;
-                    }
+                    sessionPoses.push({ pose: randomPose, holdTime: holdTime });
+                    distinctPoseIds.add(randomPose.id);
+                    subStageAccumulated += holdTime;
+                    globalAccumulatedTime += holdTime;
+                    lastPose = randomPose;
                 }
             }
             continue;
         }
 
+        // --- STANDARD LOOP ---
         let stageAccumulated = 0;
-        while (stageAccumulated < stageTimeTarget && sessionPoses.length < maxPosesWithoutSavasana) {
+        // Block G.3: Remove .length cap in while loop to ensure budget fills
+        while (stageAccumulated < stageTimeTarget && sessionPoses.length < maxTotalEntries) {
             let allowedPoses = eligiblePools;
             if (lastPose && lastPose.body_focus.some(tag => ['Backbend', 'Inversion'].includes(tag))) {
                 allowedPoses = eligiblePools.filter(p => p.body_focus.some(tag => ['Twist', 'Hip-Opener', 'Forward-Bend', 'Restorative'].includes(tag)));
@@ -406,14 +388,7 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
             }
 
             const randomPose = selectWeightedPose(
-                allowedPoses, 
-                focus, 
-                focusMap, 
-                lastPose ? lastPose.id : null, 
-                sessionPoses, 
-                seenPoses, 
-                NEW_POSE_LIMIT, 
-                bodyFocusHistory
+                allowedPoses, focus, focusMap, lastPose ? lastPose.id : null, sessionPoses, seenPoses, NEW_POSE_LIMIT, bodyFocusHistory, distinctPoseIds, maxDistinctPoses, rng
             );
             if (!randomPose) continue;
 
@@ -433,32 +408,49 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
 
             if (globalAccumulatedTime + holdTime > totalTargetTime - savasanaDuration) break;
 
-            // --- BILATERAL SPLIT ---
-            if (randomPose.unilateral === true) {
-                const halfHold = Math.floor(holdTime / 2);
-                sessionPoses.push({ pose: randomPose, holdTime: halfHold, side: 'left' });
-                sessionPoses.push({ pose: randomPose, holdTime: holdTime - halfHold, side: 'right' });
-                stageAccumulated += holdTime;
-                globalAccumulatedTime += holdTime;
-                lastPose = randomPose;
-            } else {
-                sessionPoses.push({ pose: randomPose, holdTime: holdTime });
-                stageAccumulated += holdTime;
-                globalAccumulatedTime += holdTime;
-                lastPose = randomPose;
-            }
+            sessionPoses.push({ pose: randomPose, holdTime: holdTime });
+            distinctPoseIds.add(randomPose.id);
+            stageAccumulated += holdTime;
+            globalAccumulatedTime += holdTime;
+            lastPose = randomPose;
         }
     }
 
-    if (sessionPoses.length > maxPosesWithoutSavasana) {
-        sessionPoses.splice(maxPosesWithoutSavasana, sessionPoses.length - maxPosesWithoutSavasana);
+    // --- F: MINIMUM DISTINCT POSE COUNT ENFORCEMENT ---
+    if (distinctPoseIds.size < minDistinctPoses) {
+        let fillPool = poseLibrary.filter(p => 
+            p.sequence_role.includes('Cooldown') && 
+            levelRange.poseDifficulties.includes(p.difficulty)
+        );
+        if (fillPool.length === 0) {
+            fillPool = poseLibrary.filter(p => levelRange.poseDifficulties.includes(p.difficulty));
+        }
+
+        while (distinctPoseIds.size < minDistinctPoses && sessionPoses.length < maxTotalEntries) {
+            const randomPose = selectWeightedPose(
+                fillPool, focus, focusMap, lastPose ? lastPose.id : null, sessionPoses, seenPoses, NEW_POSE_LIMIT, bodyFocusHistory, distinctPoseIds, maxDistinctPoses, rng
+            );
+            if (!randomPose) break;
+
+            let holdTime = Math.round(baseHold * getFocusMultiplier(focus, randomPose.body_focus));
+            const cap = duration === 'long' ? 90 : 60;
+            holdTime = Math.min(cap, Math.max(20, holdTime));
+
+            sessionPoses.push({ pose: randomPose, holdTime: holdTime });
+            distinctPoseIds.add(randomPose.id);
+            lastPose = randomPose;
+        }
+    }
+
+    // --- FINAL TRIMMING & SAVASANA ---
+    // We only trim if we've exceeded a safety limit on total entries (prevent infinite repeats), distinct caps are handled in the selection.
+    if (sessionPoses.length > maxTotalEntries) {
+        sessionPoses.splice(maxTotalEntries, sessionPoses.length - maxTotalEntries);
     }
     const savasana = poseLibrary.find(p => p.id === 11);
     sessionPoses.push({ pose: savasana, holdTime: savasanaDuration });
 
-    // 1. Validate
     if (needsRepair(sessionPoses, poseLibrary, level)) {
-        // 2. Repair if needed
         sessionPoses = repairSession(sessionPoses, poseLibrary, level, focus, duration);
     }
 

@@ -1,5 +1,4 @@
 .DS_Store
 inputs/
 tools/
-full_project_export.txt
-root_codebase.txt
+codebase.txt
