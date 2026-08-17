@@ -3,26 +3,37 @@
  * ------
  * Purpose: Comprehensive plain JS assertion tests for the generator.
  * Run by tests.html which imports and executes this.
+ *
+ * Fixes in this version:
+ * - REMOVED: dead top-level code (`const rng = mulberry32(12345); const session =
+ *   generateSession(poses, ...)`) that referenced `poses` before it was ever defined
+ *   in scope — this threw a ReferenceError on module import and broke the entire
+ *   test harness (both suites, since tests.html imports this file directly).
+ * - The seeded RNG helper is now defined here properly and actually used in a new
+ *   determinism suite (SUITE 11), instead of sitting unused in dead code.
+ * - Added SUITE 12: bilateral (Left/Right) pose handling, now that it's implemented
+ *   procedurally, not just in the handcrafted levels.
+ * - Pose-count assertions updated to check DISTINCT pose count (a Set of ids,
+ *   excluding Savasana), not raw array length — raw length can legitimately exceed
+ *   the pose-count range now, since a bilateral pose contributes 2 entries for 1
+ *   distinct pose, and safety-repair insertions (counterposes, warm-ups) add entries
+ *   on top when triggered. Checking distinct count is what B.2/F actually intended.
  */
 
 import { generateSession } from '../session-generator.js';
 
-// --- TEST HARNESS ---
-const output = document.getElementById('test-output');
-
-// Add this at the top of tests/session-generator.test.js
+// --- SEEDED RNG (for SUITE 11 — determinism) ---
 function mulberry32(a) {
     return function() {
         a |= 0; a = a + 0x6D2B79F5 | 0;
-        var t = Math.imul(a ^ a >>> 15, 1 | a);
+        let t = Math.imul(a ^ a >>> 15, 1 | a);
         t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
         return ((t ^ t >>> 14) >>> 0) / 4294967296;
-    }
+    };
 }
 
-// Use it in tests
-const rng = mulberry32(12345); // Fixed seed
-const session = generateSession(poses, 20, 'strengthen', 'medium', [], {}, rng);
+// --- TEST HARNESS ---
+const output = document.getElementById('test-output');
 
 function createLog(msg, isPass = true, counterObj) {
     const div = document.createElement('div');
@@ -37,12 +48,18 @@ function runTest(name, condition, counters) {
     condition ? createLog(`✅ PASS: ${name}`, true, counters) : createLog(`❌ FAIL: ${name}`, false, counters);
 }
 
+// Distinct pose count, excluding Savasana (id 11) — the semantically correct
+// thing to check against the short/medium/long pose-count ranges.
+function distinctPoseCount(session) {
+    return new Set(session.filter(item => item.pose.id !== 11).map(item => item.pose.id)).size;
+}
+
 // --- MAIN EXPORTED FUNCTION ---
 export async function runGeneratorTests() {
     const counters = { pass: 0, fail: 0 };
 
     createLog('\n--- Starting Comprehensive Generator Tests ---', true, counters);
-    
+
     let poses;
     try {
         const res = await fetch('../poses.json');
@@ -59,7 +76,7 @@ export async function runGeneratorTests() {
         generateSession(null, 20, 'strengthen', 'medium');
         runTest('Invalid poseLibrary (null) throws error', false, counters);
     } catch (e) { runTest('Invalid poseLibrary (null) throws error', true, counters); }
-    
+
     try {
         generateSession(poses, 0, 'strengthen', 'medium');
         runTest('Invalid level (0) throws error', false, counters);
@@ -92,14 +109,20 @@ export async function runGeneratorTests() {
     createLog('\n--- SUITE 3: Procedural Generation (Level > 10) ---', true, counters);
     const sessionStandard = generateSession(poses, 20, 'strengthen', 'medium');
     runTest('Savasana is the last pose', sessionStandard[sessionStandard.length - 1].pose.id === 11, counters);
-    runTest('No immediate duplicates in sequence', 
-        sessionStandard.every((item, idx) => idx === 0 || item.pose.id !== sessionStandard[idx-1].pose.id), counters
+    runTest('No immediate duplicate pose ids (adjacent), except intentional L/R pairs',
+        sessionStandard.every((item, idx) => {
+            if (idx === 0) return true;
+            const prev = sessionStandard[idx - 1];
+            if (item.pose.id !== prev.pose.id) return true;
+            // Same id adjacent is only OK if it's a Left->Right bilateral pair
+            return prev.side === 'left' && item.side === 'right';
+        }), counters
     );
-    runTest('Session contains a valid Peak pose', 
+    runTest('Session contains a valid Peak pose',
         sessionStandard.some(sp => sp.pose.sequence_role.includes('Peak')), counters
     );
-    runTest('Session contains all 5 stages (Centering, Warming, Pathway, Peak, Cooldown)', 
-        ['Centering', 'Warming', 'Pathway', 'Peak', 'Cooldown'].every(role => 
+    runTest('Session contains all 5 stages (Centering, Warming, Pathway, Peak, Cooldown)',
+        ['Centering', 'Warming', 'Pathway', 'Peak', 'Cooldown'].every(role =>
             sessionStandard.some(sp => sp.pose.sequence_role.includes(role))
         ), counters
     );
@@ -118,34 +141,36 @@ export async function runGeneratorTests() {
     // --- SUITE 5: Level Ranges & Gating (100 runs) ---
     createLog('\n--- SUITE 5: Level Ranges & Gating ---', true, counters);
     let plowAt40 = false, plowAt50 = false;
-    const runsGating = 100;
-    for (let i = 0; i < runsGating; i++) {
+    for (let i = 0; i < 100; i++) {
         const s40 = generateSession(poses, 40, 'strengthen', 'medium');
         if (s40.some(sp => sp.pose.id === 27)) { plowAt40 = true; break; }
+    }
+    for (let i = 0; i < 100; i++) {
         const s50 = generateSession(poses, 50, 'strengthen', 'medium');
-        if (s50.some(sp => sp.pose.id === 27)) plowAt50 = true;
+        if (s50.some(sp => sp.pose.id === 27)) { plowAt50 = true; break; }
     }
     runTest('Plow (id 27) is gated below Level 41 (never appears at 40)', !plowAt40, counters);
     runTest('Plow (id 27) is allowed at Level 50 (appears at least once in 100 runs)', plowAt50, counters);
 
-    // --- SUITE 6: Duration Pose-Counts (Block B.2) ---
-    createLog('\n--- SUITE 6: Duration Pose-Counts ---', true, counters);
+    // --- SUITE 6: Duration Pose-Counts (DISTINCT count, per Block B.2/F) ---
+    createLog('\n--- SUITE 6: Duration Pose-Counts (distinct poses, excl. Savasana) ---', true, counters);
     const shortSession = generateSession(poses, 20, 'relax', 'short');
-    runTest('Short session respects pose count range (8-10)', shortSession.length >= 8 && shortSession.length <= 10, counters);
+    const shortDistinct = distinctPoseCount(shortSession);
+    runTest(`Short session distinct pose count in [8,10] (got ${shortDistinct})`, shortDistinct >= 8 && shortDistinct <= 10, counters);
 
     const mediumSession = generateSession(poses, 20, 'strengthen', 'medium');
-    runTest('Medium session respects pose count range (12-15)', mediumSession.length >= 12 && mediumSession.length <= 15, counters);
+    const mediumDistinct = distinctPoseCount(mediumSession);
+    runTest(`Medium session distinct pose count in [12,15] (got ${mediumDistinct})`, mediumDistinct >= 12 && mediumDistinct <= 15, counters);
 
     const longSession = generateSession(poses, 20, 'strengthen', 'long');
-    runTest('Long session respects pose count range (16-20)', longSession.length >= 16 && longSession.length <= 20, counters);
+    const longDistinct = distinctPoseCount(longSession);
+    runTest(`Long session distinct pose count in [16,20] (got ${longDistinct})`, longDistinct >= 16 && longDistinct <= 20, counters);
 
-    
     // --- SUITE 7: Focus Filtering (100 runs each) ---
     createLog('\n--- SUITE 7: Focus Filtering ---', true, counters);
     let strengthTotal = 0, relaxTotal = 0;
     const isStrengthPose = (p) => p.body_focus.some(tag => ['Standing-Strength', 'Core', 'Arm-Balance', 'Backbend'].includes(tag));
-    const runsFocus = 100;
-    for (let i = 0; i < runsFocus; i++) {
+    for (let i = 0; i < 100; i++) {
         const s = generateSession(poses, 20, 'strengthen', 'medium');
         strengthTotal += s.filter(sp => isStrengthPose(sp.pose)).length;
         const r = generateSession(poses, 20, 'relax', 'medium');
@@ -155,20 +180,16 @@ export async function runGeneratorTests() {
 
     // --- SUITE 8: New-Pose Cap (Continuity) ---
     createLog('\n--- SUITE 8: New-Pose Cap (seenPoses) ---', true, counters);
-    // Use a comprehensive seenPoses list that covers most poses
-    // We leave out only a few poses (e.g., 14, 19, 22, 36, 40) to test the cap
     const seenPoses = [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 37, 38, 39, 41, 42, 43, 44, 45, 46, 47, 48];
     const sessionWithSeen = generateSession(poses, 20, 'strengthen', 'medium', seenPoses);
-    const newPoses = sessionWithSeen.filter(sp => !seenPoses.includes(sp.pose.id));
-    // With a comprehensive seenPoses list, the cap should be respected; we allow at most 2 new poses.
-    runTest('New-Pose cap limits new poses to 2 (with enough seen poses available)', newPoses.length <= 2, counters);
+    const newDistinctPoses = new Set(sessionWithSeen.filter(sp => !seenPoses.includes(sp.pose.id)).map(sp => sp.pose.id));
+    runTest('New-pose cap limits DISTINCT new poses to 2 (bug fix — was counting entries, not distinct ids)', newDistinctPoses.size <= 2, counters);
 
     // --- SUITE 9: Body-Focus Penalty (100 runs each) ---
     createLog('\n--- SUITE 9: Body-Focus Penalty (Silent Engine) ---', true, counters);
     const bodyFocusHistory = { 'backbend': 50 };
     let penBackbends = 0, normalBackbends = 0;
-    const runsPenalty = 100;
-    for (let i = 0; i < runsPenalty; i++) {
+    for (let i = 0; i < 100; i++) {
         const penSession = generateSession(poses, 20, 'strengthen', 'medium', [], bodyFocusHistory);
         penBackbends += penSession.filter(sp => sp.pose.body_focus.includes('Backbend')).length;
         const normalSession = generateSession(poses, 20, 'strengthen', 'medium');
@@ -181,7 +202,6 @@ export async function runGeneratorTests() {
     let maxHoldOverall = 0;
     for (let i = 0; i < 30; i++) {
         const s = generateSession(poses, 20, 'strengthen', 'long');
-        // Exclude Savasana (id 11) from the max hold calculation
         const maxHold = s
             .filter(item => item.pose.id !== 11)
             .reduce((max, item) => Math.max(max, item.holdTime), 0);
@@ -193,6 +213,52 @@ export async function runGeneratorTests() {
         .filter(item => item.pose.id !== 11)
         .reduce((max, item) => Math.max(max, item.holdTime), 0);
     runTest('Short session hold time (excluding Savasana) does not exceed 60s', maxHoldShort <= 60, counters);
+
+    // --- SUITE 11: Deterministic RNG (NEW — was dead/unused code before) ---
+    createLog('\n--- SUITE 11: Deterministic RNG (reproducibility) ---', true, counters);
+    const rngA = mulberry32(42);
+    const rngB = mulberry32(42);
+    const seededSessionA = generateSession(poses, 60, 'strengthen', 'medium', [], {}, rngA);
+    const seededSessionB = generateSession(poses, 60, 'strengthen', 'medium', [], {}, rngB);
+    const sameSequence = JSON.stringify(seededSessionA.map(i => i.pose.id)) === JSON.stringify(seededSessionB.map(i => i.pose.id));
+    runTest('Same seed produces an identical pose sequence (test failures are now reproducible)', sameSequence, counters);
+
+    const rngC = mulberry32(999);
+    const seededSessionC = generateSession(poses, 60, 'strengthen', 'medium', [], {}, rngC);
+    const differentSequence = JSON.stringify(seededSessionA.map(i => i.pose.id)) !== JSON.stringify(seededSessionC.map(i => i.pose.id));
+    runTest('Different seeds (usually) produce different sequences (sanity check the seed is actually used)', differentSequence, counters);
+
+    // --- SUITE 12: Bilateral (Left/Right) Pose Handling (NEW) ---
+    createLog('\n--- SUITE 12: Bilateral Pose Handling ---', true, counters);
+    let foundBilateral = false;
+    let leftRightAdjacentAndPaired = true;
+    let bilateralHoldTimesSumCorrectly = true;
+    for (let i = 0; i < 30; i++) {
+        const s = generateSession(poses, 80, 'mobility', 'long');
+        for (let j = 0; j < s.length; j++) {
+            if (s[j].side === 'left') {
+                foundBilateral = true;
+                const next = s[j + 1];
+                if (!next || next.side !== 'right' || next.pose.id !== s[j].pose.id) {
+                    leftRightAdjacentAndPaired = false;
+                }
+            }
+        }
+    }
+    runTest('Bilateral poses appear in procedurally-generated sessions (not just handcrafted levels)', foundBilateral, counters);
+    runTest('Every Left entry is immediately followed by its matching Right entry', leftRightAdjacentAndPaired, counters);
+
+    // A bilateral pose's L+R split should count as ONE distinct pose, not two,
+    // for both the pose-count cap and the new-pose cap.
+    const bilateralPoseIds = poses.filter(p => p.unilateral).map(p => p.id);
+    let distinctCountRespectsBilateral = true;
+    for (let i = 0; i < 20; i++) {
+        const s = generateSession(poses, 80, 'mobility', 'medium');
+        const distinct = distinctPoseCount(s);
+        // distinct should never exceed the medium max (15) even if several bilateral poses were used
+        if (distinct > 15) distinctCountRespectsBilateral = false;
+    }
+    runTest('Distinct pose count stays within the duration cap even with bilateral poses present', distinctCountRespectsBilateral, counters);
 
     // --- FINAL RESULTS ---
     createLog('\n--- Generator Tests Complete ---', true, counters);

@@ -146,13 +146,25 @@
 
     <!-- Scripts -->
     <script type="module" src="app.js"></script>
-    
-    <!-- <script>
-        if ('serviceWorker' in navigator) {
+
+    <script>
+        // The service worker's cache-first strategy is exactly what real users want
+        // (offline support once installed) but actively gets in the way of local
+        // development — edits don't show up on refresh without manually clearing
+        // caches. So: register it for real deployments, skip it for local dev,
+        // including testing on a phone over the local network (see README).
+        const isLocalDev =
+            ['localhost', '127.0.0.1'].includes(location.hostname) ||
+            location.hostname.startsWith('192.168.') ||
+            location.hostname.startsWith('10.');
+
+        if ('serviceWorker' in navigator && !isLocalDev) {
             navigator.serviceWorker.register('./sw.js')
                 .then(reg => console.log('✅ Service Worker registered:', reg.scope))
                 .catch(err => console.warn('⚠️ Service Worker registration failed:', err));
+        } else if (isLocalDev) {
+            console.log('ℹ️ Service Worker registration skipped (local dev environment)');
         }
-    </script> -->
+    </script>
 </body>
 </html>

@@ -1,110 +1,55 @@
 # Trellis — Task List
 
-Grouped by block. Each block's implementation tasks are followed by **one** combined documentation + test task covering that whole block, rather than repeating "update docs" per item.
+Rewritten from scratch this pass, since the previous version was checked against the actual code and found to be almost entirely stale — most of what it listed as pending was already done, just undocumented. This version only lists what's genuinely still open, verified against the real code as of this pass.
 
 ---
 
-## Block A — Pose Illustrations (Priority 1)
+## Resolved this pass (for reference — not action items)
 
-### A.1 Retrieve and verify real per-pose image URLs
-**Why:** all 48 poses currently share one placeholder icon. The "original URLs are broken" claim doesn't hold up against the source SQLite database — the URLs found there (Cloudinary, `res.cloudinary.com/dko1be2jy/...`) are well-formed and match what's live in the source repo's own README.
-**How:** Query `url_svg` (or `url_png`) per pose from the source database, compile the full 48-entry list, and verify a sample actually load in a browser before trusting the whole set.
-**Files:** none yet — this is a data-gathering step.
+- ✅ Bilateral (Left/Right) pose splitting now works in procedural generation (levels 11–200), not just handcrafted levels 1–10.
+- ✅ New-pose-cap counting bug fixed (was reading the wrong property, always counting as 0 new / always treating everything past the 2nd entry as capped) — now correctly counts distinct pose ids, so a bilateral pose's two sides count as one.
+- ✅ Test suite unblocked — removed dead top-level code in `session-generator.test.js` that threw on import and prevented the entire harness (both suites) from running at all.
+- ✅ Deterministic RNG actually wired into real test assertions (new SUITE 11), not just sitting unused. Same-seed reproducibility verified.
+- ✅ New SUITE 12 added: bilateral pose handling, including that L/R splits count as one pose toward the distinct-pose cap.
+- ✅ Pose-count test assertions corrected to check distinct pose count, not raw array length (raw length can legitimately exceed the range now, due to bilateral splits and safety-repair insertions).
+- ✅ Service worker re-enabled, but gated to skip registration on `localhost`/local-network addresses — fixes the stale-cache local-dev problem without losing offline support for real users.
+- ✅ Dead state cleanup: removed the unused lifetime `bodyFocusHistory` counter (superseded by the rolling 14-day window, never read after that was introduced) and the bogus `focusHistory` field Quick Unlock was resetting (never existed in the schema, never read). Schema bumped to v2 with a migration to strip the old field from existing saves.
+- ✅ Confirmed already correct in code (previous docs incorrectly described these as unresolved): the six-pose Shoulder Stand/Plow warm-up set (Cat, Cow, Downward-Facing Dog, Dolphin, Bridge, Plank), time-decayed body-focus penalty, audio chime, pose-count ranges, `manifest.json` relative paths, Quick Unlock confirmation dialog.
 
-### A.2 Wire verified URLs into `poses.json`
-**How:** Once A.1 is confirmed, replace the placeholder `image_url` for all 48 poses (including the added Cobra pose — see Block B) with real URLs. If any pose's URL is genuinely dead, flag it individually rather than assuming the whole set is bad.
+---
+
+## Still open
+
+### 1. Apply the Half Boat data swap
+**What:** Pose id 2 is currently "Cobra" (invented, no real source data) — the real source pose at id 2 is "Half Boat" (Ardha Navasana), with real description/benefits text and a working illustration URL, already prepared and handed over in conversation. This is a manual `poses.json` edit, not a design decision — just needs to actually be applied.
 **Files:** `poses.json`
 
-### A.3 Docs & tests for Block A
-- **README:** update §4 to reflect real image sourcing (remove the "known issue" framing once resolved); remove item #2 from §10's open list.
-- **Tests:** add a basic sanity check to `session-generator.test.js` (or a new lightweight check) confirming no two poses share the same `image_url` except intentionally.
+### 2. Decide the license
+**What:** A `LICENSE` file (AGPLv3) exists but was never a deliberate choice — it appeared during implementation. AGPL's copyleft/network-disclosure terms are a mismatch for a static app shared with friends; a permissive license (MIT, matching the source data) or no license are the more typical fits. Needs an explicit decision, not an assumption either way.
+**Files:** `LICENSE`
 
----
-
-## Block B — Data Schema Cleanup
-
-### B.1 Resolve the Cobra pose question
-**Decision so far:** keep for now, revisit later. No action required this pass beyond documenting it clearly (already done in README §4). Leave as a standing decision point, not a task with a deadline.
-
-### B.2 Convert pose-count caps from fixed numbers to ranges
-**Why:** currently `MAX_POSES_TOTAL = { short: 10, medium: 15, long: 20 }` — single ceilings, not the ranges (short 8–10 / medium 12–15 / long 16–20) originally intended. This defeats part of the point of duration affecting pose count as well as hold time.
-**How:** Change to `{ short: {min: 8, max: 10}, medium: {min: 12, max: 15}, long: {min: 16, max: 20} }`. Keep `max` as the existing hard ceiling on the generation loop. Add a floor: after the stage loop and before Savasana is appended, if `sessionPoses.length < min − 1`, keep generating additional poses (drawing from the same eligible pools used during Cooldown) until the minimum is met, respecting the existing safety rules rather than bypassing them.
+### 3. Resolve Focus double-weighting fully
+**What:** Currently mitigated (hold-time multipliers were reduced) but not resolved — Focus still gets both a selection-weight bonus (`+2.0` per matching tag in `selectWeightedPose`) and a hold-time multiplier (`FOCUS_MODIFIERS`) for the same match. Decide whether to keep both at reduced strength (current state) or drop one entirely.
 **Files:** `session-generator.js`
 
-### B.4 Docs & tests for Block B
-- **README:** update §5.3's "known issue" note to reflect the fix; update §10 item #4.
-- **Tests:** add assertions to `session-generator.test.js` confirming generated sessions (levels > 10) fall within `[min, max]` pose count for each duration, not just under the max.
-
----
-
-## Block C — Shoulder Stand / Plow Safety
-
-### C.1 Restore the six-pose warm-up set
-**Why:** the current `hasNeckPrep` check only recognizes Cat/Cow; the originally-specified set was broader (Cat, Cow, Downward-Facing Dog, Dolphin, Bridge, Plank) — restoring it, per your call to roll back.
-**How:** In both `needsRepair` and `repairSession`, change the neck-prep check from `['Cat', 'Cow'].includes(sp.pose.english_name)` to checking pose id membership in the full six-pose set (use ids, not English names, to avoid locale/rename fragility — English names get swapped for display but ids are stable).
+### 4. Discrete-slot generator refactor
+**What:** The generator still fills *time budgets* per stage rather than reserving guaranteed slots up front — the loop-continuation logic was improved this pass (poses no longer silently skip on a bad random pick), but a stage can still end up thin if its eligible pool is small. The `needsRepair`/`repairSession` safety net catches genuine gaps, but a discrete-slot design would prevent them by construction instead of patching after the fact. This remains the single biggest architectural question if thin-stage issues ever surface in practice — not urgent unless they do.
 **Files:** `session-generator.js`
 
-### C.2 Docs & tests for Block C
-- **README:** update §5.4's "known narrowing" note to confirm the restored set; update §10 item #5.
-- **Tests:** extend the Shoulder Stand/Plow gating suite in `session-generator.test.js` to confirm sessions containing either pose also contain at least one of the six warm-up poses earlier in the sequence.
-
----
-
-## Block D — Progress Safety UX
-
-### D.1 Add a confirmation step to Quick Unlock
-**Why:** it currently resets `recentSessions`, `focusHistory`/`bodyFocusHistory`, and `seenPoses` immediately on entering a valid level number — no confirmation before destroying history.
-**How:** After the `prompt()` returns a valid level, show a second confirmation (`confirm()` is fine, or a styled modal matching the disclaimer's pattern if you want it to feel less jarring) explicitly stating that history/progress tracking will be reset. Proceed only on explicit confirmation.
-**Files:** `app.js`
-
-### D.2 Docs & tests for Block D
-- **README:** update §6's Quick Unlock note to reflect the confirmation step; remove §10 item #6.
-- **Tests:** no automated test needed (this is a `confirm()` dialog, not generator logic) — manual verification step, note it as such in the PR/commit description when implemented.
-
----
-
-## Block E — Deployment Path Cleanup
-
-### E.1 Fix `manifest.json` absolute icon paths
-**How:** Change `"src": "/icon-192.png"` and `"/icon-512.png"` to `"./icon-192.png"` / `"./icon-512.png"`, matching the relative-path fix already applied everywhere else.
-**Files:** `manifest.json`
-
-### E.2 Docs & tests for Block E
-- **README:** remove the "known issue" callout in Quick Start once fixed.
-- **Tests:** no automated test applicable — verify manually by loading the manifest under a non-root path (e.g. serve locally from a subfolder to simulate the GitHub Pages path structure) before considering this closed.
-
----
-
-## Block F — Bilateral Pose Handling Refinement
-
-### F.1 Review pose-count semantics for Left/Right splits
-**Why:** each side of a unilateral pose currently counts as a separate entry toward both the pose-count cap (Block B) and the new-pose cap, which may not match how a user perceives "how many poses" they practiced, and could cause a session to hit its pose-count ceiling faster than intended when it includes several unilateral poses.
-**How:** Decide whether pose-count and new-pose-cap logic should count *distinct poses* (Left+Right = 1) or *entries* (Left+Right = 2), and make the implementation consistent with that choice. Leaning toward counting distinct poses for the cap logic, since that better matches user perception — but flagging as a decision point rather than dictating it outright, since it changes session pacing.
+### 5. Minor: repair-injected poses bypass the distinct-pose cap
+**What:** Found while fixing the bilateral/new-pose-cap bugs — `repairSession()`'s safety insertions (counterpose Child's Pose, spine-warmup Cat/Cow, wrist-release, etc.) splice directly into the session array without going through the same `pushPose()`/`distinctPoseIds` tracking the main generation loop uses. In practice this means a session that triggers repair could end up with slightly more distinct poses than its duration's stated max. Low priority — repair is a rare safety-net path, not the common case — but worth fixing for correctness if Block 4 (discrete-slot refactor) doesn't make it moot first.
 **Files:** `session-generator.js`
 
-### F.2 Docs & tests for Block F
-- **README:** update §5.5 (new-pose cap) and §10 item #14 once resolved.
-- **Tests:** add a case to `session-generator.test.js` using a level/duration combo likely to include unilateral poses, asserting pose-count-cap behavior matches whichever semantics were chosen.
+### 6. Responsive layout pass
+**What:** Still mobile-first only, no tablet/desktop adaptation. Deferred pending the visual design pass (item 7).
+**Files:** `main.css`
 
----
-
-## Block G — Known Backlog (carried over, not yet scheduled)
-
-These were self-identified as open during the last implementation pass and remain open. No new information changes their priority — listed here so they don't get lost, not because they're being worked this pass.
-
-- **G.1 Resolve Focus double-weighting** — decide whether to keep both the selection-weight bonus and the hold-time multiplier for matching Focus tags, or drop one.
-- **G.2 Time-decay the body-focus history penalty** — replace the lifetime cumulative counter with a rolling/recency-weighted version.
-- **G.3 Discrete-slot generator refactor** — replace time-budget-based stage filling with guaranteed reserved slots per stage. Flagged as the single biggest remaining architectural question if bugs keep surfacing around thin/empty stages.
-- **G.4 Deterministic RNG for tests** — accept an `rng` parameter in `generateSession()` so failing tests can be reproduced exactly.
-- **G.5 Audio chime for pose transitions** — not yet implemented at all.
-- **G.6 Responsive layout pass** — tablet/desktop widths, deferred pending the visual design pass (Block H doesn't cover this — it's still genuinely just backlog).
-
-### G.7 Docs & tests for Block G
-- **README:** no change needed until any of G.1–G.6 actually gets scheduled — §10 already lists all of these accurately.
-- **Tests:** N/A until implementation begins on a specific item.
+### 7. Real visual design pass
+**What:** Palette, typography, vine graphics — current colors/type are still the original placeholder, not a deliberate choice. Deliberately deferred throughout this project; still open.
+**Files:** `main.css`
 
 ---
 
 ## Next concrete step
 
-Block A (image URLs) first — it's both the highest-visibility unfinished feature and the one with a concrete, checkable answer, unlike the design-judgment-call blocks (B, C, F) that follow it.
+Items 1 and 2 are pure action items (no design work needed) — worth clearing first. Item 3 is a judgment call that doesn't require code archaeology, so it's a reasonable next design conversation. Items 4–6 are all genuinely bigger and can wait.

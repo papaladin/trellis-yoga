@@ -396,16 +396,11 @@ class TrellisApp {
             const currentPoseIds = this.currentSession.map(item => item.pose.id);
             this.state.seenPoses = [...new Set([...this.state.seenPoses, ...currentPoseIds])];
 
-            // We still update the persistent history, but it's now aggregated by the sliding window on next load
-            this.currentSession.forEach(item => {
-                item.pose.body_focus.forEach(tag => {
-                    if (this.state.bodyFocusHistory[tag]) {
-                        this.state.bodyFocusHistory[tag]++;
-                    } else {
-                        this.state.bodyFocusHistory[tag] = 1;
-                    }
-                });
-            });
+            // No separate body-focus counter to maintain here anymore — recentSessions
+            // (just pushed above, with posesUsed) is the only source of truth, and
+            // computeRecentBodyFocusHistory() derives the rolling window from it fresh
+            // each time a session starts. The old persistent bodyFocusHistory counter
+            // was dead weight: nothing read it after the rolling window was introduced.
         }
 
         if (completed && this.state.currentLevel === this.state.frontierLevel) {
@@ -469,8 +464,10 @@ class TrellisApp {
                     app.state.frontierLevel = targetLevel;
                     app.state.lastPlayedLevel = targetLevel;
                     app.state.recentSessions = [];
-                    app.state.focusHistory = { relax: 0, strengthen: 0, mobility: 0 };
                     app.state.seenPoses = [];
+                    // Note: no separate focusHistory/bodyFocusHistory field to reset —
+                    // both the focus nudge and body-focus balancing derive everything
+                    // from recentSessions, which is already cleared above.
                     
                     saveState(app.state);
                     app.renderTrellis();

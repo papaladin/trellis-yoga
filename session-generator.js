@@ -2,26 +2,30 @@
  * session-generator.js
  * ------
  * Purpose: The core algorithmic "brain" of the app.
- * 
- * Updates in this version (Bundled Blocks F, G.1, G.3, G.4):
- * - Block F: Pose caps now count distinct poses (using a Set), not total entries.
- * - Block G.1: Reduced Focus hold-time multipliers to avoid over-reinforcement.
- * - Block G.3: Removed arbitrary `null` returns to ensure loops fill their time budgets, even if repeating poses.
- * - Block G.4: Injected `rng = Math.random` parameter for deterministic tests.
+ *
+ * Updates in this version (Bilateral fix + new-pose-cap counting fix):
+ * - NEW: `pushPose()` helper — bilateral (unilateral: true) poses are now split into
+ *   Left/Right entries in the PROCEDURAL generator too, not just handcrafted levels 1-10.
+ *   Used consistently everywhere a pose is added to the session (handcrafted branch,
+ *   both stage loops, and the minimum-distinct-pose backfill).
+ * - FIX: `selectWeightedPose`'s new-pose-cap counting was reading `p.id` on session
+ *   entries shaped `{ pose, holdTime, side }` — always undefined, so it was silently
+ *   counting *every* pose added so far, not just new ones. Fixed to read `p.pose.id`
+ *   and to de-duplicate by id, so a bilateral pose's Left+Right entries count as ONE
+ *   pose toward both the new-pose cap and the distinct-pose cap (matches intent: a
+ *   pose practiced on both sides is one pose practiced, not two).
  */
 
 const DURATION_TARGETS = { short: 15 * 60, medium: 25 * 60, long: 45 * 60 };
 const SAVASANA_TIME = { short: 60, medium: 180, long: 300 };
 const STAGE_WEIGHTS = { centering: 0.05, warming: 0.20, pathway: 0.25, peak: 0.30, cooldown: 0.20 };
 
-// Block F: The caps refer to distinct poses, not total entries.
-const MAX_POSES_TOTAL = { 
-    short: { min: 8, max: 10 }, 
-    medium: { min: 12, max: 15 }, 
-    long: { min: 16, max: 20 } 
+const MAX_POSES_TOTAL = {
+    short: { min: 8, max: 10 },
+    medium: { min: 12, max: 15 },
+    long: { min: 16, max: 20 }
 };
 
-// Block G.1: Reduced Focus hold-time multipliers
 const FOCUS_MODIFIERS = {
     strengthen: { 'Standing-Strength': 1.15, 'Core': 1.15, 'Arm-Balance': 1.15, 'Backbend': 1.1, 'Forward-Bend': 0.8, 'Hip-Opener': 0.8, 'Twist': 0.8, 'Inversion': 0.8, 'Restorative': 0.6 },
     relax: { 'Standing-Strength': 0.6, 'Core': 0.6, 'Arm-Balance': 0.6, 'Backbend': 0.8, 'Forward-Bend': 1.15, 'Hip-Opener': 1.15, 'Twist': 1.15, 'Inversion': 1.15, 'Restorative': 1.2 },
@@ -55,6 +59,20 @@ function getLevelRange(level) {
     return LEVEL_RANGES.integration;
 }
 
+// --- BILATERAL-AWARE PUSH HELPER ---
+// Every place a pose gets added to a session goes through this, so unilateral
+// poses always split into Left/Right consistently, everywhere.
+function pushPose(sessionPoses, distinctPoseIds, pose, holdTime) {
+    if (pose.unilateral) {
+        const halfHold = Math.floor(holdTime / 2);
+        sessionPoses.push({ pose, holdTime: halfHold, side: 'left' });
+        sessionPoses.push({ pose, holdTime: holdTime - halfHold, side: 'right' });
+    } else {
+        sessionPoses.push({ pose, holdTime });
+    }
+    distinctPoseIds.add(pose.id);
+}
+
 const handcraftedSessions = {
     1: { poses: [38, 10] }, 2: { poses: [7, 8, 38, 10] }, 3: { poses: [7, 8, 38, 42, 10] },
     4: { poses: [7, 8, 15, 42, 10] }, 5: { poses: [7, 8, 15, 26, 42, 10] },
@@ -74,7 +92,7 @@ function needsRepair(sessionPoses, poseLibrary, level) {
         }
     }
     const hasBackbend = sessionPoses.some(sp => sp.pose.body_focus.includes('Backbend'));
-    const prepPoseIds = [4, 7, 8, 14, 15, 26];
+    const prepPoseIds = [4, 7, 8, 14, 15, 26]; // Bridge, Cat, Cow, Dolphin, Downward-Facing Dog, Plank
     const hasSpineWarmup = sessionPoses.some(sp => prepPoseIds.includes(sp.pose.id));
     if (hasBackbend && !hasSpineWarmup) return true;
 
@@ -156,7 +174,7 @@ function repairSession(sessionPoses, poseLibrary, level, focus, duration) {
     return sessionPoses;
 }
 
-// --- SELECTION HELPER (UPDATED FOR G.3, G.4, F) ---
+// --- SELECTION HELPER ---
 function selectWeightedPose(allowedPoses, focus, focusMap, lastPoseId, currentSessionPoses, seenPoses, newPoseLimit, bodyFocusHistory, distinctPoseIds, maxDistinct, rng) {
     if (!allowedPoses || allowedPoses.length === 0) return null;
 
@@ -166,14 +184,21 @@ function selectWeightedPose(allowedPoses, focus, focusMap, lastPoseId, currentSe
         if (candidatePool.length === 0) candidatePool = allowedPoses;
     }
 
-    // Block F: Enforce distinct pose cap. If we've hit the cap, only allow poses already in the set.
+    // Enforce distinct pose cap (Left+Right of the same pose share one id, so this
+    // was already correct — no change here).
     if (distinctPoseIds.size >= maxDistinct) {
         const distinctPool = allowedPoses.filter(p => distinctPoseIds.has(p.id));
         if (distinctPool.length > 0) candidatePool = distinctPool;
     }
 
-    const existingNewPoses = currentSessionPoses.filter(p => !seenPoses.includes(p.id));
-    const newPoseCount = existingNewPoses.length;
+    // FIX: read the real pose id (p.pose.id, not p.id — entries are {pose, holdTime, side})
+    // and de-duplicate, so a bilateral pose's two entries count as ONE new pose, not two.
+    const existingNewPoseIds = new Set(
+        currentSessionPoses
+            .map(p => p.pose.id)
+            .filter(id => !seenPoses.includes(id))
+    );
+    const newPoseCount = existingNewPoseIds.size;
 
     if (newPoseCount >= newPoseLimit) {
         candidatePool = candidatePool.filter(p => seenPoses.includes(p.id));
@@ -196,8 +221,7 @@ function selectWeightedPose(allowedPoses, focus, focusMap, lastPoseId, currentSe
 
     const totalWeight = weightedPoses.reduce((sum, item) => sum + item.weight, 0);
     if (totalWeight === 0) return null;
-    
-    // Block G.4: Use injected rng
+
     let randomNum = rng() * totalWeight;
     let selectedPose = weightedPoses[0].pose;
     for (const item of weightedPoses) {
@@ -207,7 +231,7 @@ function selectWeightedPose(allowedPoses, focus, focusMap, lastPoseId, currentSe
     return selectedPose;
 }
 
-// ---- MAIN GENERATOR (UPDATED FOR F, G.1, G.3, G.4) ----
+// ---- MAIN GENERATOR ----
 export function generateSession(poseLibrary, level, focus, duration, seenPoses = [], bodyFocusHistory = {}, rng = Math.random) {
     if (!poseLibrary || !Array.isArray(poseLibrary)) {
         throw new Error('Invalid poseLibrary: must be an array');
@@ -227,10 +251,9 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
     const poseRange = MAX_POSES_TOTAL[duration];
     const maxDistinctPoses = poseRange.max;
     const minDistinctPoses = poseRange.min;
-    const maxTotalEntries = maxDistinctPoses * 3; // Safety cap to prevent massive repeats
-    const NEW_POSE_LIMIT = 2; 
-    
-    // Block G.4: Replace Math.random with rng()
+    const maxTotalEntries = maxDistinctPoses * 3; // Safety cap to prevent runaway repeats/splits
+    const NEW_POSE_LIMIT = 2;
+
     const variance = 0.90 + (rng() * 0.10);
     const totalTargetTime = Math.round(targetDuration * variance);
 
@@ -239,22 +262,17 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
         const ids = handcraftedSessions[level].poses;
         const holdTime = Math.min(60, Math.round((totalTargetTime - savasanaDuration) / ids.length));
         let session = [];
+        const dummyDistinct = new Set(); // not used for gating at this level, just satisfies pushPose's signature
         ids.forEach(id => {
             const pose = poseLibrary.find(p => p.id === id);
-            if (pose && pose.unilateral === true) {
-                const halfHold = Math.floor(holdTime / 2);
-                session.push({ pose: pose, holdTime: halfHold, side: 'left' });
-                session.push({ pose: pose, holdTime: holdTime - halfHold, side: 'right' });
-            } else if (pose) {
-                session.push({ pose: pose, holdTime: Math.max(20, holdTime) });
-            }
+            if (pose) pushPose(session, dummyDistinct, pose, Math.max(20, holdTime));
         });
         session.push({ pose: poseLibrary.find(p => p.id === 11), holdTime: savasanaDuration });
         return session;
     }
 
     // ----- PROCEDURAL LEVELS (11–200) -----
-    const baseHold = Math.min(60, Math.max(20, 20 + (level - 10) * 0.25)); 
+    const baseHold = Math.min(60, Math.max(20, 20 + (level - 10) * 0.25));
     const levelRange = getLevelRange(level);
     const focusMap = {
         relax: ['Forward-Bend', 'Hip-Opener', 'Twist', 'Inversion', 'Restorative'],
@@ -279,8 +297,8 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
         const timeAllocPerStage = totalTargetTime - savasanaDuration;
         const stageTimeTarget = timeAllocPerStage * stage.weight;
 
-        let eligiblePools = poseLibrary.filter(p => 
-            p.sequence_role.includes(stage.role) && 
+        let eligiblePools = poseLibrary.filter(p =>
+            p.sequence_role.includes(stage.role) &&
             levelRange.poseDifficulties.includes(p.difficulty)
         );
 
@@ -289,14 +307,14 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
         }
 
         if (stage.role === 'Pathway' || stage.role === 'Peak') {
-            eligiblePools = eligiblePools.filter(p => 
+            eligiblePools = eligiblePools.filter(p =>
                 p.body_focus.some(tag => focusMap[focus].includes(tag))
             );
         }
 
         if (eligiblePools.length === 0) {
-            eligiblePools = poseLibrary.filter(p => 
-                p.sequence_role.includes(stage.role) && 
+            eligiblePools = poseLibrary.filter(p =>
+                p.sequence_role.includes(stage.role) &&
                 levelRange.poseDifficulties.includes(p.difficulty)
             );
         }
@@ -312,7 +330,6 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
                 let subStageAccumulated = 0;
                 let subTarget = stageTimeTarget * 0.5;
 
-                // Block G.3: Remove .length cap in while loop to ensure budget fills
                 while (subStageAccumulated < subTarget && sessionPoses.length < maxTotalEntries) {
                     let allowedPoses = subEligible;
                     if (lastPose && lastPose.body_focus.some(tag => ['Backbend', 'Inversion'].includes(tag))) {
@@ -324,7 +341,7 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
                         if (allowedPoses.length === 0) allowedPoses = subEligible;
                     }
                     if (lastPose && lastPose.intensity === 'intense') {
-                        allowedPoses = subEligible.filter(p => 
+                        allowedPoses = subEligible.filter(p =>
                             p.body_focus.some(tag => ['Twist', 'Hip-Opener', 'Forward-Bend', 'Restorative'].includes(tag))
                         );
                         if (allowedPoses.length === 0) {
@@ -341,12 +358,12 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
                     if (lastPose && lastPose.hip_rotation !== 'neutral' && randomPose.hip_rotation !== 'neutral' && lastPose.hip_rotation !== randomPose.hip_rotation) {
                         const downDog = poseLibrary.find(p => p.id === 15);
                         if (downDog) {
-                            sessionPoses.push({ pose: downDog, holdTime: 30 });
+                            pushPose(sessionPoses, distinctPoseIds, downDog, 30);
                             globalAccumulatedTime += 30;
                             subStageAccumulated += 30;
                         }
                     }
-                    
+
                     const modifier = getFocusMultiplier(focus, randomPose.body_focus);
                     let holdTime = Math.round(baseHold * modifier);
                     const cap = duration === 'long' ? 90 : 60;
@@ -354,8 +371,7 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
 
                     if (globalAccumulatedTime + holdTime > totalTargetTime - savasanaDuration) break;
 
-                    sessionPoses.push({ pose: randomPose, holdTime: holdTime });
-                    distinctPoseIds.add(randomPose.id);
+                    pushPose(sessionPoses, distinctPoseIds, randomPose, holdTime);
                     subStageAccumulated += holdTime;
                     globalAccumulatedTime += holdTime;
                     lastPose = randomPose;
@@ -366,7 +382,6 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
 
         // --- STANDARD LOOP ---
         let stageAccumulated = 0;
-        // Block G.3: Remove .length cap in while loop to ensure budget fills
         while (stageAccumulated < stageTimeTarget && sessionPoses.length < maxTotalEntries) {
             let allowedPoses = eligiblePools;
             if (lastPose && lastPose.body_focus.some(tag => ['Backbend', 'Inversion'].includes(tag))) {
@@ -378,7 +393,7 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
                 if (allowedPoses.length === 0) allowedPoses = eligiblePools;
             }
             if (lastPose && lastPose.intensity === 'intense') {
-                allowedPoses = eligiblePools.filter(p => 
+                allowedPoses = eligiblePools.filter(p =>
                     p.body_focus.some(tag => ['Twist', 'Hip-Opener', 'Forward-Bend', 'Restorative'].includes(tag))
                 );
                 if (allowedPoses.length === 0) {
@@ -395,12 +410,12 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
             if (lastPose && lastPose.hip_rotation !== 'neutral' && randomPose.hip_rotation !== 'neutral' && lastPose.hip_rotation !== randomPose.hip_rotation) {
                 const downDog = poseLibrary.find(p => p.id === 15);
                 if (downDog) {
-                    sessionPoses.push({ pose: downDog, holdTime: 30 });
+                    pushPose(sessionPoses, distinctPoseIds, downDog, 30);
                     globalAccumulatedTime += 30;
                     stageAccumulated += 30;
                 }
             }
-            
+
             const modifier = getFocusMultiplier(focus, randomPose.body_focus);
             let holdTime = Math.round(baseHold * modifier);
             const cap = duration === 'long' ? 90 : 60;
@@ -408,18 +423,17 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
 
             if (globalAccumulatedTime + holdTime > totalTargetTime - savasanaDuration) break;
 
-            sessionPoses.push({ pose: randomPose, holdTime: holdTime });
-            distinctPoseIds.add(randomPose.id);
+            pushPose(sessionPoses, distinctPoseIds, randomPose, holdTime);
             stageAccumulated += holdTime;
             globalAccumulatedTime += holdTime;
             lastPose = randomPose;
         }
     }
 
-    // --- F: MINIMUM DISTINCT POSE COUNT ENFORCEMENT ---
+    // --- MINIMUM DISTINCT POSE COUNT ENFORCEMENT ---
     if (distinctPoseIds.size < minDistinctPoses) {
-        let fillPool = poseLibrary.filter(p => 
-            p.sequence_role.includes('Cooldown') && 
+        let fillPool = poseLibrary.filter(p =>
+            p.sequence_role.includes('Cooldown') &&
             levelRange.poseDifficulties.includes(p.difficulty)
         );
         if (fillPool.length === 0) {
@@ -436,14 +450,12 @@ export function generateSession(poseLibrary, level, focus, duration, seenPoses =
             const cap = duration === 'long' ? 90 : 60;
             holdTime = Math.min(cap, Math.max(20, holdTime));
 
-            sessionPoses.push({ pose: randomPose, holdTime: holdTime });
-            distinctPoseIds.add(randomPose.id);
+            pushPose(sessionPoses, distinctPoseIds, randomPose, holdTime);
             lastPose = randomPose;
         }
     }
 
     // --- FINAL TRIMMING & SAVASANA ---
-    // We only trim if we've exceeded a safety limit on total entries (prevent infinite repeats), distinct caps are handled in the selection.
     if (sessionPoses.length > maxTotalEntries) {
         sessionPoses.splice(maxTotalEntries, sessionPoses.length - maxTotalEntries);
     }
